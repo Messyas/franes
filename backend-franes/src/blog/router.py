@@ -75,3 +75,17 @@ async def update_post(post_id: int, post_data: BlogPostCreate):
     )
     updated_post = await fetch_one(update_query, commit_after=True)
     return updated_post
+
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(post_id: int): 
+    """
+    Deleta um post.
+    Retorna uma resposta vazia com status 204 se for bem-sucedido.
+    """
+    select_query = blog_posts.select().where(blog_posts.c.id == post_id)
+    if not await fetch_one(select_query):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    delete_query = blog_posts.delete().where(blog_posts.c.id == post_id)
+    await execute(delete_query, commit_after=True)
+    return {}
