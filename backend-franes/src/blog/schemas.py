@@ -2,8 +2,8 @@
 # Esquemas garantem que os dados entrem e saiam da api de forma correta.
 # +--------------------------------------------------------------------+
 
-import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from datetime import datetime
 
 # Schema base de campos normais
 class BlogPostBase(BaseModel): 
@@ -12,7 +12,7 @@ class BlogPostBase(BaseModel):
     content: str
 
 # Schema para criação de posts, herda do base
-class BBlogPostCreate(BlogPostBase):
+class BlogPostCreate(BlogPostBase):
     pass
 
 # Schema para retorno de post(read), herda do base e adiciona id e created_at
@@ -21,5 +21,6 @@ class BlogPost(BlogPostBase):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True # Permite converter automaticamente de ORM para Pydantic ler os dados
+    model_config = ConfigDict(
+        from_attributes=True # Permite converter automaticamente de ORM para Pydantic ler os dados
+    )
