@@ -75,8 +75,8 @@ async def _execute_query(
 
     return result
 
-
-async def get_db_connection() -> AsyncConnection:
+# se tirar da aviso 
+async def get_db_connection() -> AsyncConnection: # type: ignore
     connection = await engine.connect()
     try:
         yield connection
