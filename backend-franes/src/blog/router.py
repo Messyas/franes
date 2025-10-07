@@ -2,7 +2,6 @@
 # Contem a logica para receber as requisicoes HTTP e interagir com o banco de dados
 # +--------------------------------------------------------------------------------
 
-import datetime
 from typing import List
 from fastapi import APIRouter, HTTPException, status
 from src.database import fetch_all, fetch_one, execute
