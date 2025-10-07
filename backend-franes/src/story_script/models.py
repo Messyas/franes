@@ -15,7 +15,7 @@ story_script = Table(
     Column("title", String(60), nullable=False),
     Column("sub_title", String(120), nullable=False),
     Column("created_at", DateTime, server_default=func.now(), nullable=False),
-    Column("author_notes", String(300), nullable=True),
+    Column("author_note", String(300), nullable=True),
     Column("content", String, nullable=False),
     Column("author_final_comment", String, nullable=True)
 )
