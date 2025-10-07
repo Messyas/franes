@@ -39,7 +39,7 @@ async def create_blog_post(
     return created_post
 
 @router.get("/", response_model=List[BlogPost])
-async def get_all_posts():
+async def get_all_posts(): 
     query = blog_posts.select()
     return await fetch_all(query)
 
