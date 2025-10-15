@@ -7,6 +7,7 @@ from src.config import settings
 from src.database import metadata
 from src.blog import models #aparentemente tem que importar cada modelo aqui pq sei la
 from src.story_script import models
+from src.art import models
 
 
 # this is the Alembic Config object, which provides

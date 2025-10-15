@@ -8,6 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 from src.config import app_configs, settings
 from src.blog.router import router as blog_router
 from src.story_script.router import router as story_script
+from src.art.router import router as art
 
 @asynccontextmanager
 async def lifespan(_application: FastAPI) -> AsyncGenerator:
@@ -40,3 +41,4 @@ async def healthcheck() -> dict[str, str]:
 
 app.include_router(blog_router)
 app.include_router(story_script)
+app.include_router(art)

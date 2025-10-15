@@ -15,7 +15,7 @@ class CreateArt(ArtBase):
     pass
 
 # Representa o dado como ele vem do banco de dados
-class StoryScript(ArtBase):
+class ArtScript(ArtBase):
     id: int
     created_at: datetime
 

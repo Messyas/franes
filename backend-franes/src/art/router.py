@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, status
 from src.database import fetch_all, fetch_one, execute
-from src.art.model import art
+from src.art.models import art
 from src.art.schemas import CreateArt, ArtScript
 
 router = APIRouter(
@@ -9,13 +9,13 @@ router = APIRouter(
     tags=["Art"],
 )
 
-@router.post("/", response_model=CreateArt, status_code=status.HTTP_201_CREATED)
-async def create_art(art: CreateArt):
+@router.post("/", response_model=ArtScript, status_code=status.HTTP_201_CREATED)
+async def create_art(art_object: CreateArt):
     query = (
         art.insert()
         .values(
-            title=art.title,
-            description=art.description,
+            title=art_object.title,
+            description=art_object.description,
         )
         .returning(art)
     )
@@ -58,4 +58,4 @@ async def delete_art(art_id: int):
     
     delete_query = art.delete().where(art.c.id == art_id)
     await execute(delete_query, commit_after=True)
-    return {}
+    return
