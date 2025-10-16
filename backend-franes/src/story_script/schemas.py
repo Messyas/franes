@@ -2,8 +2,11 @@
 # Esquemas garantem que os dados entrem e saiam da api de forma correta.
 # +--------------------------------------------------------------------+
 
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+
+from src.schemas import CloudinaryAsset
 
 # Schema base de campos normais
 class StoryScriptBase(BaseModel): 
@@ -12,6 +15,7 @@ class StoryScriptBase(BaseModel):
     author_note: str
     content: str
     author_final_comment: str
+    cover_image: CloudinaryAsset | None = None
 
 # Schema para criação de Roteiro de historias, herda do base
 class StoryScriptCreate(StoryScriptBase):

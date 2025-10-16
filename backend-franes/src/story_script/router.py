@@ -24,7 +24,12 @@ async def create_story_script(
             sub_title=story_script_par.sub_title,
             author_note=story_script_par.author_note,
             content=story_script_par.content,
-            author_final_comment=story_script_par.author_final_comment
+            author_final_comment=story_script_par.author_final_comment,
+            cover_image=(
+                story_script_par.cover_image.model_dump()
+                if story_script_par.cover_image
+                else None
+            ),
         )
         .returning(story_script)
     )
@@ -57,7 +62,19 @@ async def update_story_script(
     update_query = (
         story_script.update()
         .where(story_script.c.id == story_script_id)
-        .values(post_data.model_dump())
+        .values(
+            {
+                **post_data.model_dump(
+                    exclude_unset=True,
+                    exclude_none=False,
+                ),
+                "cover_image": (
+                    post_data.cover_image.model_dump()
+                    if post_data.cover_image
+                    else None
+                ),
+            }
+        )
         .returning(story_script) 
     )
     updated_story_script = await fetch_one(update_query, commit_after=True)

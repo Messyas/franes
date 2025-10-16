@@ -19,6 +19,11 @@ async def create_art(
         .values(
             title=art_object.title,
             description=art_object.description,
+            image=(
+                art_object.image.model_dump()
+                if art_object.image
+                else None
+            ),
         )
         .returning(art)
     )
@@ -48,7 +53,19 @@ async def update_art(
     update_query = (
         art.update()
         .where(art.c.id == art_id)
-        .values(art_data.model_dump())
+        .values(
+            {
+                **art_data.model_dump(
+                    exclude_unset=True,
+                    exclude_none=False,
+                ),
+                "image": (
+                    art_data.image.model_dump()
+                    if art_data.image
+                    else None
+                ),
+            }
+        )
         .returning(art) 
     )
     updated_art = await fetch_one(update_query, commit_after=True)

@@ -1,11 +1,4 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    func,
-    Table,
-)
+from sqlalchemy import Column, Integer, String, DateTime, func, Table, JSON
 from src.database import metadata
 
 story_script = Table(
@@ -17,5 +10,6 @@ story_script = Table(
     Column("created_at", DateTime, server_default=func.now(), nullable=False),
     Column("author_note", String(300), nullable=True),
     Column("content", String, nullable=False),
-    Column("author_final_comment", String, nullable=True)
+    Column("author_final_comment", String, nullable=True),
+    Column("cover_image", JSON, nullable=True),
 )

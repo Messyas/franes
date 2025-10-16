@@ -2,13 +2,17 @@
 # Garantem que os dados entrem e saiam da api no molde correto.
 # +--------------------------------------------------------------------+
 
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+
+from src.schemas import CloudinaryAsset
 
 # Schema de campos normais
 class ArtBase(BaseModel): 
     title: str
     description: str
+    image: CloudinaryAsset | None = None
 
 # Schema para criação de artes, herda do base
 class CreateArt(ArtBase):

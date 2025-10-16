@@ -1,11 +1,4 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    func,
-    Table,
-)
+from sqlalchemy import Column, Integer, String, DateTime, func, Table, JSON
 from src.database import metadata
 
 art = Table(
@@ -15,4 +8,5 @@ art = Table(
     Column("title", String(50), nullable=False), 
     Column("created_at", DateTime, server_default=func.now(), nullable=False),
     Column("description", String(300), nullable=False),
+    Column("image", JSON, nullable=True),
 )
