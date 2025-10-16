@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: franes_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend-franes
+      dockerfile: dockerfile
+    container_name: franes_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend-franes/.env
+    environment:
+      DATABASE_URL: postgresql://app:app@postgres:5432/app
+      DATABASE_ASYNC_URL: postgresql+asyncpg://app:app@postgres:5432/app
+      ENVIRONMENT: LOCAL
+    volumes:
+      - ./backend-franes:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend-franes
+      dockerfile: dockerfile
+    container_name: franes_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend-franes/franes:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  frontend_node_modules:
