@@ -23,9 +23,9 @@ class Config(CustomBaseSettings):
 
     SENTRY_DSN: str | None = None
 
-    ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD_HASH: str | None = None
-    ADMIN_PASSWORD: str | None = "changeme"
+    ADMIN_TOKEN_SECRET: str = "change-me"
+    ADMIN_TOKEN_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     CORS_ORIGINS: list[str] = ["*"]
     CORS_ORIGINS_REGEX: str | None = None
@@ -41,9 +41,9 @@ class Config(CustomBaseSettings):
         return self
 
     @model_validator(mode="after")
-    def validate_admin_credentials(self) -> "Config":
-        if not self.ADMIN_PASSWORD_HASH and not self.ADMIN_PASSWORD:
-            raise ValueError("Admin password is not set")
+    def validate_admin_secret(self) -> "Config":
+        if not self.ADMIN_TOKEN_SECRET:
+            raise ValueError("Admin token secret is not set")
 
         return self
 
