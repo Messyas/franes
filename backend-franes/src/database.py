@@ -75,7 +75,7 @@ async def _execute_query(
 
     return result
 
-# se tirar da aviso 
+# se tirar da aviso
 async def get_db_connection() -> AsyncConnection: # type: ignore
     connection = await engine.connect()
     try:

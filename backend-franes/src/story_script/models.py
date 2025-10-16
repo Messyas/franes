@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, func, Table, JSON
+from sqlalchemy import JSON, Column, DateTime, Integer, String, Table, func
+
 from src.database import metadata
 
 story_script = Table(

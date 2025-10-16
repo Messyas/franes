@@ -8,8 +8,9 @@ from pydantic import BaseModel, ConfigDict
 
 from src.schemas import CloudinaryAsset
 
+
 # Schema de campos normais
-class ArtBase(BaseModel): 
+class ArtBase(BaseModel):
     title: str
     description: str
     image: CloudinaryAsset | None = None

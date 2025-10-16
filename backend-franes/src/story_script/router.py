@@ -1,9 +1,11 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from src.database import fetch_all, fetch_one, execute
-from src.story_script.models import story_script
-from src.story_script.schemas import StoryScriptCreate, StoryScript
+
 from src.auth.dependencies import get_current_admin_user
+from src.database import execute, fetch_all, fetch_one
+from src.story_script.models import story_script
+from src.story_script.schemas import StoryScript, StoryScriptCreate
 
 router = APIRouter(
     prefix="/story-script",
@@ -45,7 +47,7 @@ async def list_story_script():
 async def get_story_script_by_id(story_script_id: int):
     query = story_script.select().where(story_script.c.id == story_script_id)
     post = await fetch_one(query)
-    
+
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")
     return post
@@ -55,7 +57,7 @@ async def update_story_script(
     story_script_id: int,
     post_data: StoryScriptCreate,
     _: dict = Depends(get_current_admin_user),
-): 
+):
     select_query = story_script.select().where(story_script.c.id == story_script_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")
@@ -75,7 +77,7 @@ async def update_story_script(
                 ),
             }
         )
-        .returning(story_script) 
+        .returning(story_script)
     )
     updated_story_script = await fetch_one(update_query, commit_after=True)
     return updated_story_script
@@ -86,11 +88,11 @@ async def update_story_script(
 )
 async def delete_story_script(
     story_script_id: int, _: dict = Depends(get_current_admin_user)
-): 
+):
     select_query = story_script.select().where(story_script.c.id == story_script_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")
-    
+
     delete_query = story_script.delete().where(story_script.c.id == story_script_id)
     await execute(delete_query, commit_after=True)
     return {}

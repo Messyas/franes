@@ -10,7 +10,6 @@ from sqlalchemy import (
 
 from src.database import metadata
 
-
 curriculum_files = Table(
     "curriculum_files",
     metadata,

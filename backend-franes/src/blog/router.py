@@ -3,11 +3,13 @@
 # +--------------------------------------------------------------------------------
 
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from src.database import fetch_all, fetch_one, execute
-from src.blog.models import blog_posts
-from src.blog.schemas import BlogPostCreate, BlogPost
+
 from src.auth.dependencies import get_current_admin_user
+from src.blog.models import blog_posts
+from src.blog.schemas import BlogPost, BlogPostCreate
+from src.database import execute, fetch_all, fetch_one
 
 router = APIRouter(
     prefix="/blog",
@@ -41,7 +43,7 @@ async def create_blog_post(
     return created_post
 
 @router.get("/", response_model=List[BlogPost])
-async def get_all_posts(): 
+async def get_all_posts():
     query = blog_posts.select()
     return await fetch_all(query)
 
@@ -53,10 +55,10 @@ async def get_post_by_id(post_id: int):
     """
     query = blog_posts.select().where(blog_posts.c.id == post_id)
     post = await fetch_one(query)
-    
+
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-        
+
     return post
 
 @router.put("/{post_id}", response_model=BlogPost)
@@ -76,7 +78,7 @@ async def update_post(
         blog_posts.update()
         .where(blog_posts.c.id == post_id)
         .values(post_data.model_dump())
-        .returning(blog_posts) 
+        .returning(blog_posts)
     )
     updated_post = await fetch_one(update_query, commit_after=True)
     return updated_post
@@ -84,7 +86,7 @@ async def update_post(
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(
     post_id: int, _: dict = Depends(get_current_admin_user)
-): 
+):
     """
     Deleta um post.
     Retorna uma resposta vazia com status 204 se for bem-sucedido.
@@ -92,7 +94,7 @@ async def delete_post(
     select_query = blog_posts.select().where(blog_posts.c.id == post_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
+
     delete_query = blog_posts.delete().where(blog_posts.c.id == post_id)
     await execute(delete_query, commit_after=True)
     return {}

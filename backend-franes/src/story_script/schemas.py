@@ -8,8 +8,9 @@ from pydantic import BaseModel, ConfigDict
 
 from src.schemas import CloudinaryAsset
 
+
 # Schema base de campos normais
-class StoryScriptBase(BaseModel): 
+class StoryScriptBase(BaseModel):
     title: str
     sub_title: str
     author_note: str

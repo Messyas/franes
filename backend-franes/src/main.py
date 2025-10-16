@@ -5,13 +5,14 @@ import sentry_sdk
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from src.config import app_configs, settings
-from src.blog.router import router as blog_router
-from src.story_script.router import router as story_script
-from src.art.router import router as art
-from src.curriculum.router import router as curriculum_router
-from src.auth.router import router as auth_router
 from src.admin.router import router as admin_users_router
+from src.art.router import router as art
+from src.auth.router import router as auth_router
+from src.blog.router import router as blog_router
+from src.config import app_configs, settings
+from src.curriculum.router import router as curriculum_router
+from src.story_script.router import router as story_script
+
 
 @asynccontextmanager
 async def lifespan(_application: FastAPI) -> AsyncGenerator:

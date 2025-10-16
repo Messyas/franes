@@ -1,11 +1,12 @@
 from sqlalchemy import (
     Column,
+    DateTime,
     Integer,
     String,
-    DateTime,
-    func,
     Table,
+    func,
 )
+
 from src.database import metadata
 
 #Define a estrutura da tabela blog_posts no banco de dados

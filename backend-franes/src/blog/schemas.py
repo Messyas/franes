@@ -2,11 +2,13 @@
 # Esquemas garantem que os dados entrem e saiam da api de forma correta.
 # +--------------------------------------------------------------------+
 
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict
+
+
 # Schema base de campos normais
-class BlogPostBase(BaseModel): 
+class BlogPostBase(BaseModel):
     title: str
     reading_time: int
     content: str

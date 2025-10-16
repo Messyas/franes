@@ -5,8 +5,8 @@ from sqlalchemy import (
     Integer,
     String,
     Table,
-    func,
     UniqueConstraint,
+    func,
 )
 
 from src.database import metadata
