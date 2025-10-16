@@ -23,6 +23,10 @@ class Config(CustomBaseSettings):
 
     SENTRY_DSN: str | None = None
 
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD_HASH: str | None = None
+    ADMIN_PASSWORD: str | None = "changeme"
+
     CORS_ORIGINS: list[str] = ["*"]
     CORS_ORIGINS_REGEX: str | None = None
     CORS_HEADERS: list[str] = ["*"]
@@ -33,6 +37,13 @@ class Config(CustomBaseSettings):
     def validate_sentry_non_local(self) -> "Config":
         if self.ENVIRONMENT.is_deployed and not self.SENTRY_DSN:
             raise ValueError("Sentry is not set")
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_admin_credentials(self) -> "Config":
+        if not self.ADMIN_PASSWORD_HASH and not self.ADMIN_PASSWORD:
+            raise ValueError("Admin password is not set")
 
         return self
 

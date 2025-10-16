@@ -3,10 +3,11 @@
 # +--------------------------------------------------------------------------------
 
 from typing import List
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from src.database import fetch_all, fetch_one, execute
 from src.blog.models import blog_posts
 from src.blog.schemas import BlogPostCreate, BlogPost
+from src.auth.dependencies import get_current_admin_user
 
 router = APIRouter(
     prefix="/blog",
@@ -15,11 +16,12 @@ router = APIRouter(
 
 #futuramente criar meddleware para ver se o user e admin
 
-@router.post("/", response_model=BlogPost, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=BlogPost, status_code=status.HTTP_201_CREATED
+)
 async def create_blog_post(
-    post: BlogPostCreate
-    # Descomente a linha abaixo para proteger a rota.
-    # , current_admin: User = Depends(get_current_admin_user)
+    post: BlogPostCreate,
+    _: dict = Depends(get_current_admin_user),
 ):
     """
     Cria um novo post no blog e retorna o post completo que foi salvo no banco.
@@ -58,7 +60,11 @@ async def get_post_by_id(post_id: int):
     return post
 
 @router.put("/{post_id}", response_model=BlogPost)
-async def update_post(post_id: int, post_data: BlogPostCreate): 
+async def update_post(
+    post_id: int,
+    post_data: BlogPostCreate,
+    _: dict = Depends(get_current_admin_user),
+):
     """
     Atualiza um post existente.
     Retorna o post com os dados atualizados.
@@ -76,7 +82,9 @@ async def update_post(post_id: int, post_data: BlogPostCreate):
     return updated_post
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int): 
+async def delete_post(
+    post_id: int, _: dict = Depends(get_current_admin_user)
+): 
     """
     Deleta um post.
     Retorna uma resposta vazia com status 204 se for bem-sucedido.

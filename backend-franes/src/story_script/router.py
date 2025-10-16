@@ -1,16 +1,22 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from src.database import fetch_all, fetch_one, execute
 from src.story_script.models import story_script
 from src.story_script.schemas import StoryScriptCreate, StoryScript
+from src.auth.dependencies import get_current_admin_user
 
 router = APIRouter(
     prefix="/story-script",
     tags=["Story Script"],
 )
 
-@router.post("/", response_model=StoryScriptCreate, status_code=status.HTTP_201_CREATED)
-async def create_story_script(story_script_par: StoryScriptCreate):
+@router.post(
+    "/", response_model=StoryScript, status_code=status.HTTP_201_CREATED
+)
+async def create_story_script(
+    story_script_par: StoryScriptCreate,
+    _: dict = Depends(get_current_admin_user),
+):
     query = (
         story_script.insert()
         .values(
@@ -30,7 +36,7 @@ async def list_story_script():
     query = story_script.select()
     return await fetch_all(query)
 
-@router.get("/{post_id}", response_model=StoryScript)
+@router.get("/{story_script_id}", response_model=StoryScript)
 async def get_story_script_by_id(story_script_id: int):
     query = story_script.select().where(story_script.c.id == story_script_id)
     post = await fetch_one(query)
@@ -39,8 +45,12 @@ async def get_story_script_by_id(story_script_id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")
     return post
 
-@router.put("/{post_id}", response_model=StoryScript)
-async def update_story_script(story_script_id: int, post_data: StoryScriptCreate): 
+@router.put("/{story_script_id}", response_model=StoryScript)
+async def update_story_script(
+    story_script_id: int,
+    post_data: StoryScriptCreate,
+    _: dict = Depends(get_current_admin_user),
+): 
     select_query = story_script.select().where(story_script.c.id == story_script_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")
@@ -54,8 +64,12 @@ async def update_story_script(story_script_id: int, post_data: StoryScriptCreate
     return updated_story_script
 
 
-@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_story_script(story_script_id: int): 
+@router.delete(
+    "/{story_script_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_story_script(
+    story_script_id: int, _: dict = Depends(get_current_admin_user)
+): 
     select_query = story_script.select().where(story_script.c.id == story_script_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")

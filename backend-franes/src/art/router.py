@@ -1,8 +1,9 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from src.database import fetch_all, fetch_one, execute
 from src.art.models import art
 from src.art.schemas import CreateArt, ArtScript
+from src.auth.dependencies import get_current_admin_user
 
 router = APIRouter(
     prefix="/art",
@@ -10,7 +11,9 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=ArtScript, status_code=status.HTTP_201_CREATED)
-async def create_art(art_object: CreateArt):
+async def create_art(
+    art_object: CreateArt, _: dict = Depends(get_current_admin_user)
+):
     query = (
         art.insert()
         .values(
@@ -36,7 +39,9 @@ async def get_art_by_id(art_id: int):
     return the_art
 
 @router.put("/{art_id}", response_model=ArtScript)
-async def update_art(art_id: int, art_data: CreateArt): 
+async def update_art(
+    art_id: int, art_data: CreateArt, _: dict = Depends(get_current_admin_user)
+): 
     select_query = art.select().where(art.c.id == art_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Art not found")
@@ -51,7 +56,9 @@ async def update_art(art_id: int, art_data: CreateArt):
 
 
 @router.delete("/{art_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_art(art_id: int): 
+async def delete_art(
+    art_id: int, _: dict = Depends(get_current_admin_user)
+): 
     select_query = art.select().where(art.c.id == art_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Art not found")
