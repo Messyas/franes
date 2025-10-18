@@ -143,6 +143,12 @@ export type ArtRecord = {
   created_at: string
 }
 
+export type ArtInput = {
+  title: string
+  description: string
+  image: CloudinaryAsset | null
+}
+
 export type StoryScriptRecord = {
   id: number
   title: string
@@ -154,6 +160,15 @@ export type StoryScriptRecord = {
   created_at: string
 }
 
+export type StoryScriptInput = {
+  title: string
+  sub_title: string
+  author_note: string
+  content: string
+  author_final_comment: string
+  cover_image: CloudinaryAsset | null
+}
+
 export type CurriculumRecord = {
   id: number
   title: string
@@ -162,6 +177,13 @@ export type CurriculumRecord = {
   csv_content: string
   created_at: string
   updated_at: string
+}
+
+export type CurriculumInput = {
+  title: string
+  description?: string | null
+  file_name: string
+  csv_content: string
 }
 
 export async function loginAdmin(
@@ -200,6 +222,10 @@ export async function fetchLatestCurriculum(): Promise<CurriculumRecord> {
   return apiRequest<CurriculumRecord>("/curriculum/latest")
 }
 
+export async function fetchCurriculumEntries(): Promise<CurriculumRecord[]> {
+  return apiRequest<CurriculumRecord[]>("/curriculum")
+}
+
 export async function createBlogPost(
   input: BlogPostInput,
   token: string,
@@ -225,6 +251,84 @@ export async function updateBlogPost(
 
 export async function deleteBlogPost(id: number, token: string): Promise<void> {
   await apiRequest<void>(`/blog/${id}`, {
+    method: "DELETE",
+    token,
+  })
+}
+
+export async function createCurriculumEntry(
+  input: CurriculumInput,
+  token: string,
+): Promise<CurriculumRecord> {
+  return apiRequest<CurriculumRecord>("/curriculum", {
+    method: "POST",
+    token,
+    body: input,
+  })
+}
+
+export async function deleteCurriculumEntry(id: number, token: string): Promise<void> {
+  await apiRequest<void>(`/curriculum/${id}`, {
+    method: "DELETE",
+    token,
+  })
+}
+
+export async function createStoryScript(
+  input: StoryScriptInput,
+  token: string,
+): Promise<StoryScriptRecord> {
+  return apiRequest<StoryScriptRecord>("/story-script", {
+    method: "POST",
+    token,
+    body: input,
+  })
+}
+
+export async function updateStoryScript(
+  id: number,
+  input: StoryScriptInput,
+  token: string,
+): Promise<StoryScriptRecord> {
+  return apiRequest<StoryScriptRecord>(`/story-script/${id}`, {
+    method: "PUT",
+    token,
+    body: input,
+  })
+}
+
+export async function deleteStoryScript(id: number, token: string): Promise<void> {
+  await apiRequest<void>(`/story-script/${id}`, {
+    method: "DELETE",
+    token,
+  })
+}
+
+export async function createArtwork(
+  input: ArtInput,
+  token: string,
+): Promise<ArtRecord> {
+  return apiRequest<ArtRecord>("/art", {
+    method: "POST",
+    token,
+    body: input,
+  })
+}
+
+export async function updateArtwork(
+  id: number,
+  input: ArtInput,
+  token: string,
+): Promise<ArtRecord> {
+  return apiRequest<ArtRecord>(`/art/${id}`, {
+    method: "PUT",
+    token,
+    body: input,
+  })
+}
+
+export async function deleteArtwork(id: number, token: string): Promise<void> {
+  await apiRequest<void>(`/art/${id}`, {
     method: "DELETE",
     token,
   })
