@@ -19,6 +19,12 @@ async def create_story_script(
     story_script_par: StoryScriptCreate,
     _: dict = Depends(get_current_admin_user),
 ):
+    cover_image_payload = None
+    if story_script_par.cover_image:
+        cover_image_payload = story_script_par.cover_image.model_dump(
+            mode="json", exclude_none=True
+        )
+
     query = (
         story_script.insert()
         .values(
@@ -27,11 +33,7 @@ async def create_story_script(
             author_note=story_script_par.author_note,
             content=story_script_par.content,
             author_final_comment=story_script_par.author_final_comment,
-            cover_image=(
-                story_script_par.cover_image.model_dump()
-                if story_script_par.cover_image
-                else None
-            ),
+            cover_image=cover_image_payload,
         )
         .returning(story_script)
     )
@@ -61,22 +63,25 @@ async def update_story_script(
     select_query = story_script.select().where(story_script.c.id == story_script_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story script not found")
+    cover_image_payload = None
+    if post_data.cover_image:
+        cover_image_payload = post_data.cover_image.model_dump(
+            mode="json", exclude_none=True
+        )
+
+    update_values = {
+        **post_data.model_dump(
+            exclude={"cover_image"},
+            exclude_unset=True,
+            exclude_none=False,
+        )
+    }
+    update_values["cover_image"] = cover_image_payload
+
     update_query = (
         story_script.update()
         .where(story_script.c.id == story_script_id)
-        .values(
-            {
-                **post_data.model_dump(
-                    exclude_unset=True,
-                    exclude_none=False,
-                ),
-                "cover_image": (
-                    post_data.cover_image.model_dump()
-                    if post_data.cover_image
-                    else None
-                ),
-            }
-        )
+        .values(update_values)
         .returning(story_script)
     )
     updated_story_script = await fetch_one(update_query, commit_after=True)

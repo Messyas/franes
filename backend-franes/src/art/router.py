@@ -16,16 +16,18 @@ router = APIRouter(
 async def create_art(
     art_object: CreateArt, _: dict = Depends(get_current_admin_user)
 ):
+    image_payload = None
+    if art_object.image:
+        image_payload = art_object.image.model_dump(
+            mode="json", exclude_none=True
+        )
+
     query = (
         art.insert()
         .values(
             title=art_object.title,
             description=art_object.description,
-            image=(
-                art_object.image.model_dump()
-                if art_object.image
-                else None
-            ),
+            image=image_payload,
         )
         .returning(art)
     )
@@ -52,22 +54,25 @@ async def update_art(
     select_query = art.select().where(art.c.id == art_id)
     if not await fetch_one(select_query):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Art not found")
+    image_payload = None
+    if art_data.image:
+        image_payload = art_data.image.model_dump(
+            mode="json", exclude_none=True
+        )
+
+    update_values = {
+        **art_data.model_dump(
+            exclude={"image"},
+            exclude_unset=True,
+            exclude_none=False,
+        )
+    }
+    update_values["image"] = image_payload
+
     update_query = (
         art.update()
         .where(art.c.id == art_id)
-        .values(
-            {
-                **art_data.model_dump(
-                    exclude_unset=True,
-                    exclude_none=False,
-                ),
-                "image": (
-                    art_data.image.model_dump()
-                    if art_data.image
-                    else None
-                ),
-            }
-        )
+        .values(update_values)
         .returning(art)
     )
     updated_art = await fetch_one(update_query, commit_after=True)

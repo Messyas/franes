@@ -207,15 +207,15 @@ export async function loginAdmin(
 }
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
-  return apiRequest<BlogPost[]>("/blog")
+  return apiRequest<BlogPost[]>("/blog/")
 }
 
 export async function fetchArtworks(): Promise<ArtRecord[]> {
-  return apiRequest<ArtRecord[]>("/art")
+  return apiRequest<ArtRecord[]>("/art/")
 }
 
 export async function fetchStoryScripts(): Promise<StoryScriptRecord[]> {
-  return apiRequest<StoryScriptRecord[]>("/story-script")
+  return apiRequest<StoryScriptRecord[]>("/story-script/")
 }
 
 export async function fetchLatestCurriculum(): Promise<CurriculumRecord> {
@@ -223,14 +223,14 @@ export async function fetchLatestCurriculum(): Promise<CurriculumRecord> {
 }
 
 export async function fetchCurriculumEntries(): Promise<CurriculumRecord[]> {
-  return apiRequest<CurriculumRecord[]>("/curriculum")
+  return apiRequest<CurriculumRecord[]>("/curriculum/")
 }
 
 export async function createBlogPost(
   input: BlogPostInput,
   token: string,
 ): Promise<BlogPost> {
-  return apiRequest<BlogPost>("/blog", {
+  return apiRequest<BlogPost>("/blog/", {
     method: "POST",
     token,
     body: input,
@@ -260,7 +260,7 @@ export async function createCurriculumEntry(
   input: CurriculumInput,
   token: string,
 ): Promise<CurriculumRecord> {
-  return apiRequest<CurriculumRecord>("/curriculum", {
+  return apiRequest<CurriculumRecord>("/curriculum/", {
     method: "POST",
     token,
     body: input,
@@ -278,7 +278,7 @@ export async function createStoryScript(
   input: StoryScriptInput,
   token: string,
 ): Promise<StoryScriptRecord> {
-  return apiRequest<StoryScriptRecord>("/story-script", {
+  return apiRequest<StoryScriptRecord>("/story-script/", {
     method: "POST",
     token,
     body: input,
@@ -308,7 +308,7 @@ export async function createArtwork(
   input: ArtInput,
   token: string,
 ): Promise<ArtRecord> {
-  return apiRequest<ArtRecord>("/art", {
+  return apiRequest<ArtRecord>("/art/", {
     method: "POST",
     token,
     body: input,
