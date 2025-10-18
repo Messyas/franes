@@ -150,10 +150,12 @@ export default function SecaoHobbies() {
           {categorias.map((categoria) => (
             <Button
               key={categoria.id}
-              variant={categoriaAtiva === categoria.id ? "default" : "outline"}
+              variant="outline"
               onClick={() => setCategoriaAtiva(categoria.id)}
               className={`glass hover:glass-strong transition-all ${
-                categoriaAtiva === categoria.id ? "neon-glow border-primary" : ""
+                categoriaAtiva === categoria.id
+                  ? "neon-glow animate-neon-flicker border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground"
               }`}
             >
               {categoria.titulo}
