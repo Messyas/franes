@@ -1,3 +1,4 @@
+import ssl
 from typing import Any
 
 from sqlalchemy import (
@@ -8,17 +9,29 @@ from sqlalchemy import (
     Update,
 )
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
+from sqlalchemy.engine import make_url
 
 from src.config import settings
 from src.constants import DB_NAMING_CONVENTION
 
-DATABASE_URL = str(settings.DATABASE_ASYNC_URL)
+async_url = make_url(str(settings.DATABASE_ASYNC_URL))
+query = dict(async_url.query)
+query.pop("sslmode", None)  # asyncpg expects ssl context, not sslmode kwarg
+DATABASE_URL = async_url.set(query=query).render_as_string(hide_password=False)
+
+connect_args: dict[str, Any] = {}
+if settings.DATABASE_SSL_MODE and settings.DATABASE_SSL_MODE.lower() != "disable":
+    ssl_context = ssl.create_default_context(
+        cafile=settings.DATABASE_SSL_ROOT_CERT
+    )
+    connect_args["ssl"] = ssl_context
 
 engine = create_async_engine(
     DATABASE_URL,
     pool_size=settings.DATABASE_POOL_SIZE,
     pool_recycle=settings.DATABASE_POOL_TTL,
     pool_pre_ping=settings.DATABASE_POOL_PRE_PING,
+    connect_args=connect_args,
 )
 metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
 

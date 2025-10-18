@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
+from sqlalchemy.engine import make_url
 
 from alembic import context
 from src.config import settings
@@ -29,17 +30,27 @@ target_metadata = metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-DATABASE_URL = str(settings.DATABASE_URL)
+DATABASE_URL_STR = str(settings.DATABASE_URL)
 
 db_driver = settings.DATABASE_URL.scheme
 db_driver_parts = db_driver.split("+")
 if len(db_driver_parts) > 1:  # e.g. postgresql+asyncpg
     sync_scheme = db_driver_parts[0].strip()
-    DATABASE_URL = DATABASE_URL.replace(  # replace with sync driver
+    DATABASE_URL_STR = DATABASE_URL_STR.replace(  # replace with sync driver
         db_driver, sync_scheme
     )
 
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+sync_url = make_url(DATABASE_URL_STR)
+query = dict(sync_url.query)
+if settings.DATABASE_SSL_MODE:
+    query["sslmode"] = settings.DATABASE_SSL_MODE
+if settings.DATABASE_SSL_ROOT_CERT:
+    query["sslrootcert"] = settings.DATABASE_SSL_ROOT_CERT
+sync_url = sync_url.set(query=query)
+
+config.set_main_option(
+    "sqlalchemy.url", sync_url.render_as_string(hide_password=False)
+)
 config.compare_type = True
 config.compare_server_default = True
 

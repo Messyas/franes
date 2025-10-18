@@ -1,6 +1,7 @@
-from typing import List
+from typing import AsyncIterator, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 
 from src.auth.dependencies import get_current_admin_user
 from src.curriculum.models import curriculum_files
@@ -44,6 +45,63 @@ async def create_curriculum_entry(
 async def list_curriculum_entries():
     query = curriculum_files.select()
     return await fetch_all(query)
+
+
+@router.get("/latest", response_model=Curriculum)
+async def get_latest_curriculum_entry():
+    query = (
+        curriculum_files.select()
+        .order_by(curriculum_files.c.created_at.desc())
+        .limit(1)
+    )
+    entry = await fetch_one(query)
+    if entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Curriculum entry not found",
+        )
+    return entry
+
+
+@router.get(
+    "/latest/download",
+    response_class=StreamingResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {"text/csv": {}},
+            "description": "Curriculum CSV download",
+        }
+    },
+)
+async def download_latest_curriculum_entry() -> StreamingResponse:
+    query = (
+        curriculum_files.select()
+        .order_by(curriculum_files.c.created_at.desc())
+        .limit(1)
+    )
+    entry = await fetch_one(query)
+    if entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Curriculum entry not found",
+        )
+
+    filename = entry["file_name"] or "curriculum.csv"
+    csv_content = entry["csv_content"] or ""
+
+    async def csv_iterator() -> AsyncIterator[bytes]:
+        yield csv_content.encode("utf-8")
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "Content-Type": "text/csv; charset=utf-8",
+    }
+
+    return StreamingResponse(
+        csv_iterator(),
+        media_type="text/csv",
+        headers=headers,
+    )
 
 
 @router.get("/{curriculum_id}", response_model=Curriculum)

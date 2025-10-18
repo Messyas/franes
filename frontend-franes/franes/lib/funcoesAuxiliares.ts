@@ -1,4 +1,4 @@
-import { Code2, GraduationCap, Rocket, Briefcase } from "lucide-react"
+import { Code2, GraduationCap, Rocket, Briefcase, FileText } from "lucide-react"
 
 /**
  * Funções auxiliares para gerenciar dados e validações
@@ -118,6 +118,25 @@ export function obterDadosSobre() {
           "Colaboração e trabalho em equipe",
           "Impacto social positivo",
         ],
+      },
+    },
+    {
+      id: "curriculo",
+      titulo: "Currículo",
+      descricao:
+        "Visualize meus dados profissionais e faça download do currículo em formato CSV.",
+      icone: FileText,
+      detalhes: {
+        resumo:
+          "Currículo com foco em desenvolvimento full-stack, destacando experiências, habilidades e formação acadêmica.",
+        conteudo: [
+          "Nome: Messyas Góis França",
+          "Cargo: Desenvolvedor Full-Stack",
+          "Especialidades: React, Next.js, TypeScript, Node.js, Python, PostgreSQL",
+          "Resumo: Profissional em formação com experiência prática em desenvolvimento de aplicações web modernas e escaláveis.",
+          "Objetivo: Oportunidades para aplicar conhecimentos em projetos impactantes e continuar evoluindo tecnicamente.",
+        ],
+        arquivo: "/curriculo.csv",
       },
     },
   ]

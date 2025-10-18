@@ -63,6 +63,14 @@ Format the code with `ruff --fix` and `ruff format`
 just lint
 ```
 
+## Aiven PostgreSQL
+
+1. Baixe o certificado CA do serviço Aiven e salve em `certs/aiven-ca.pem` (o diretório já existe no repositório).
+2. Atualize o `.env` com as credenciais do serviço usando o template em `.env.example` (substitua `REPLACE_ME` pela senha real). Mantenha `DATABASE_SSL_MODE=require` e aponte `DATABASE_SSL_ROOT_CERT` para o caminho do certificado baixado.
+3. Ajuste `DATABASE_POOL_SIZE` no `.env` para permanecer abaixo do limite de conexões do plano Aiven (o plano informado suporta 20 conexões simultâneas; recomendação inicial: 8-10).
+4. Execute as migrações (`just migrate`) para criar o esquema no banco remoto.
+5. No painel da Aiven, restrinja os IPs permitidos para conexão apenas aos servidores/ambientes que precisam acessar o banco; use `0.0.0.0/0` somente durante desenvolvimento quando não houver IP fixo.
+
 ### Migrations
 - Create an automatic migration from changes in `src/database.py`
 ```shell

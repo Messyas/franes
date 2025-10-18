@@ -46,7 +46,7 @@ function formatPort(protocol: string, port: string): string {
   return `:${port}`
 }
 
-function buildApiUrl(path: string): string {
+export function buildApiUrl(path: string): string {
   const origin = removeTrailingSlash(resolveApiOrigin())
   const normalizedPath = path.startsWith("/") ? path : `/${path}`
   return `${origin}${apiBasePath}${normalizedPath}`
@@ -154,6 +154,16 @@ export type StoryScriptRecord = {
   created_at: string
 }
 
+export type CurriculumRecord = {
+  id: number
+  title: string
+  description: string | null
+  file_name: string
+  csv_content: string
+  created_at: string
+  updated_at: string
+}
+
 export async function loginAdmin(
   username: string,
   password: string,
@@ -184,6 +194,10 @@ export async function fetchArtworks(): Promise<ArtRecord[]> {
 
 export async function fetchStoryScripts(): Promise<StoryScriptRecord[]> {
   return apiRequest<StoryScriptRecord[]>("/story-script")
+}
+
+export async function fetchLatestCurriculum(): Promise<CurriculumRecord> {
+  return apiRequest<CurriculumRecord>("/curriculum/latest")
 }
 
 export async function createBlogPost(
