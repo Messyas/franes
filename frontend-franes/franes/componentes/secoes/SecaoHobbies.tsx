@@ -1,11 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { X, Calendar } from "lucide-react"
-import { obterDadosHobbies } from "@/lib/funcoesAuxiliares"
+import { useEffect, useState } from "react"
+import { Calendar, Loader2, X } from "lucide-react"
+import Image from "next/image"
+
 import { Button } from "@/components/ui/button"
 import CardItemHobby from "@/componentes/CardItemHobby"
-import Image from "next/image"
+import {
+  type ArtRecord,
+  type StoryScriptRecord,
+  fetchArtworks,
+  fetchStoryScripts,
+} from "@/lib/api"
+
+type CategoriaId = "roteiros" | "desenhos"
 
 interface ItemHobby {
   id: string
@@ -13,15 +21,34 @@ interface ItemHobby {
   descricao: string
   data: string
   imagem: string
+  detalhes?: string
+  timestamp: number
 }
 
 interface CategoriaHobby {
-  id: string
+  id: CategoriaId
   titulo: string
   descricao: string
   aspectRatio: "1:1" | "A4"
   itens: ItemHobby[]
 }
+
+type ItemsByCategory = Record<CategoriaId, ItemHobby[]>
+
+const CATEGORY_CONFIG: ReadonlyArray<Omit<CategoriaHobby, "itens">> = [
+  {
+    id: "roteiros",
+    titulo: "Roteiros",
+    descricao: "Histórias originais explorando tecnologia, ficção científica e humanidade.",
+    aspectRatio: "1:1",
+  },
+  {
+    id: "desenhos",
+    titulo: "Desenhos",
+    descricao: "Concept art e ilustrações digitais com estética sci-fi e cyberpunk.",
+    aspectRatio: "A4",
+  },
+]
 
 /**
  * Seção Hobbies - Apresenta roteiros e desenhos em grade
@@ -32,61 +59,149 @@ export default function SecaoHobbies() {
     item: ItemHobby
     aspectRatio: "1:1" | "A4"
   } | null>(null)
-  const [categoriaAtiva, setCategoriaAtiva] = useState<string>("roteiros")
+  const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaId>("roteiros")
+  const [itensPorCategoria, setItensPorCategoria] = useState<ItemsByCategory>({
+    roteiros: [],
+    desenhos: [],
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const hobbies = obterDadosHobbies() as CategoriaHobby[]
-  const categoriaAtual = hobbies.find((h) => h.id === categoriaAtiva) || hobbies[0]
+  useEffect(() => {
+    let isMounted = true
+
+    const loadData = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const [roteiros, desenhos] = await Promise.all([
+          fetchStoryScripts(),
+          fetchArtworks(),
+        ])
+
+        if (!isMounted) {
+          return
+        }
+
+        setItensPorCategoria({
+          roteiros: sortByTimestamp(
+            roteiros.map(mapStoryScriptToItem),
+          ),
+          desenhos: sortByTimestamp(
+            desenhos.map(mapArtToItem),
+          ),
+        })
+      } catch (err) {
+        if (!isMounted) {
+          return
+        }
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Não foi possível carregar os hobbies."
+        setError(message)
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const categorias: CategoriaHobby[] = CATEGORY_CONFIG.map((config) => ({
+    ...config,
+    itens: itensPorCategoria[config.id],
+  }))
+
+  const categoriaAtual =
+    categorias.find((categoria) => categoria.id === categoriaAtiva) ??
+    categorias[0]
+
+  const itensCategoriaAtual = categoriaAtual?.itens ?? []
+
+  const handleSelectItem = (item: ItemHobby, aspectRatio: "1:1" | "A4") => {
+    setItemSelecionado({ item, aspectRatio })
+  }
 
   return (
-    <section className="h-full w-full overflow-y-auto px-6 py-12 md:px-12 lg:px-24" aria-labelledby="titulo-hobbies">
+    <section
+      className="h-full w-full overflow-y-auto px-6 py-12 md:px-12 lg:px-24"
+      aria-labelledby="titulo-hobbies"
+    >
       <div className="max-w-7xl mx-auto">
         {/* Cabeçalho */}
         <header className="mb-12 animate-fade-in text-center">
-          <h1 id="titulo-hobbies" className="text-5xl md:text-6xl font-bold text-foreground mb-4 neon-glow">
-            Hobbies & Criações
+          <h1
+            id="titulo-hobbies"
+            className="text-5xl md:text-6xl font-bold text-foreground mb-4 neon-glow"
+          >
+            Hobbies
           </h1>
-          <p className="text-lg text-muted-foreground">Explorando narrativas e arte visual</p>
         </header>
 
-        <div className="flex justify-center gap-4 mb-12">
-          {hobbies.map((hobby) => (
+        <div className="flex justify-center gap-4 mb-12 flex-wrap">
+          {categorias.map((categoria) => (
             <Button
-              key={hobby.id}
-              variant={categoriaAtiva === hobby.id ? "default" : "outline"}
-              onClick={() => setCategoriaAtiva(hobby.id)}
+              key={categoria.id}
+              variant={categoriaAtiva === categoria.id ? "default" : "outline"}
+              onClick={() => setCategoriaAtiva(categoria.id)}
               className={`glass hover:glass-strong transition-all ${
-                categoriaAtiva === hobby.id ? "neon-glow border-primary" : ""
+                categoriaAtiva === categoria.id ? "neon-glow border-primary" : ""
               }`}
             >
-              {hobby.titulo}
+              {categoria.titulo}
             </Button>
           ))}
         </div>
 
         {/* Descrição da categoria */}
         <div className="text-center mb-8 animate-fade-in">
-          <p className="text-muted-foreground">{categoriaAtual.descricao}</p>
+          <p className="text-muted-foreground">{categoriaAtual?.descricao}</p>
         </div>
 
         <div
           className={`grid gap-6 ${
-            categoriaAtual.aspectRatio === "1:1"
+            categoriaAtual?.aspectRatio === "1:1"
               ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
           }`}
         >
-          {categoriaAtual.itens.map((item, index) => (
-            <CardItemHobby
-              key={item.id}
-              titulo={item.titulo}
-              descricao={item.descricao}
-              data={item.data}
-              imagem={item.imagem}
-              aspectRatio={categoriaAtual.aspectRatio}
-              delay={index * 0.1}
-              onClick={() => setItemSelecionado({ item, aspectRatio: categoriaAtual.aspectRatio })}
-            />
-          ))}
+          {isLoading ? (
+            <div className="col-span-full flex items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+              Carregando itens...
+            </div>
+          ) : error ? (
+            <div className="col-span-full glass-strong rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-destructive">
+              {error}
+            </div>
+          ) : itensCategoriaAtual.length === 0 ? (
+            <p className="col-span-full text-center text-muted-foreground">
+              Nenhum item disponível nesta categoria ainda.
+            </p>
+          ) : (
+            itensCategoriaAtual.map((item, index) => (
+              <CardItemHobby
+                key={item.id}
+                titulo={item.titulo}
+                descricao={item.descricao}
+                data={item.data}
+                imagem={item.imagem}
+                aspectRatio={categoriaAtual?.aspectRatio ?? "1:1"}
+                delay={index * 0.1}
+                onClick={() =>
+                  handleSelectItem(item, categoriaAtual?.aspectRatio ?? "1:1")
+                }
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -100,7 +215,9 @@ export default function SecaoHobbies() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-6">
-              <h2 className="text-3xl font-bold text-foreground neon-glow">{itemSelecionado.item.titulo}</h2>
+              <h2 className="text-3xl font-bold text-foreground neon-glow">
+                {itemSelecionado.item.titulo}
+              </h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -119,7 +236,9 @@ export default function SecaoHobbies() {
             {/* Imagem em tamanho maior */}
             <div
               className={`relative w-full ${
-                itemSelecionado.aspectRatio === "1:1" ? "aspect-square" : "aspect-[1/1.414]"
+                itemSelecionado.aspectRatio === "1:1"
+                  ? "aspect-square"
+                  : "aspect-[1/1.414]"
               } mb-6 rounded-lg overflow-hidden`}
             >
               <Image
@@ -130,10 +249,109 @@ export default function SecaoHobbies() {
               />
             </div>
 
-            <p className="text-foreground/90 leading-relaxed">{itemSelecionado.item.descricao}</p>
+            <p className="text-foreground/90 leading-relaxed whitespace-pre-line">
+              {itemSelecionado.item.detalhes ?? itemSelecionado.item.descricao}
+            </p>
           </div>
         </div>
       )}
     </section>
   )
+}
+
+function sortByTimestamp(items: ItemHobby[]): ItemHobby[] {
+  return [...items].sort((a, b) => b.timestamp - a.timestamp)
+}
+
+function mapArtToItem(art: ArtRecord): ItemHobby {
+  const date = parseIsoDate(art.created_at)
+  const description = art.description?.trim() || "Sem descrição disponível"
+
+  return {
+    id: `art-${art.id}`,
+    titulo: art.title,
+    descricao: description,
+    detalhes: description,
+    data: formatDateLabel(date),
+    imagem: extractImageUrl(art.image),
+    timestamp: date.getTime(),
+  }
+}
+
+function mapStoryScriptToItem(script: StoryScriptRecord): ItemHobby {
+  const date = parseIsoDate(script.created_at)
+  const resumoBase =
+    script.sub_title ||
+    script.author_note ||
+    script.content
+
+  const detalhes = [
+    script.author_note,
+    script.content,
+    script.author_final_comment,
+  ]
+    .map((chunk) => chunk?.trim())
+    .filter(Boolean)
+    .join("\n\n")
+
+  return {
+    id: `story-${script.id}`,
+    titulo: script.title,
+    descricao: createSummary(resumoBase),
+    detalhes: detalhes || undefined,
+    data: formatDateLabel(date),
+    imagem: extractImageUrl(script.cover_image),
+    timestamp: date.getTime(),
+  }
+}
+
+function extractImageUrl(asset: ArtRecord["image"]): string {
+  if (!asset) {
+    return ""
+  }
+
+  if (asset.secure_url && asset.secure_url.trim().length > 0) {
+    return asset.secure_url
+  }
+
+  return asset.url ?? ""
+}
+
+function parseIsoDate(value: string | undefined | null): Date {
+  if (!value) {
+    return new Date(NaN)
+  }
+
+  const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+  const normalized = hasTimezone ? value : `${value}Z`
+  return new Date(normalized)
+}
+
+function formatDateLabel(date: Date): string {
+  if (Number.isNaN(date.getTime())) {
+    return "Data indisponível"
+  }
+
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+}
+
+function createSummary(text: string | undefined | null, maxLength = 160): string {
+  if (!text) {
+    return "Conteúdo ainda não disponível."
+  }
+
+  const normalized = text.replace(/\s+/g, " ").trim()
+  if (!normalized) {
+    return "Conteúdo ainda não disponível."
+  }
+
+  if (normalized.length <= maxLength) {
+    return normalized
+  }
+
+  return `${normalized.slice(0, maxLength).trimEnd()}...`
 }

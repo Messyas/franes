@@ -48,6 +48,14 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_API_BASE_PATH: apiBasePath,
     NEXT_PUBLIC_API_FALLBACK_PORT: fallbackPort,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
+  },
 }
 
 export default nextConfig

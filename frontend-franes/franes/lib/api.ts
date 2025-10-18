@@ -121,6 +121,39 @@ export type BlogPostInput = {
   content: string
 }
 
+export type CloudinaryAsset = {
+  public_id: string
+  url: string
+  secure_url?: string
+  format?: string
+  width?: number
+  height?: number
+  resource_type?: string
+  bytes?: number
+  folder?: string
+  created_at?: string
+  metadata?: Record<string, unknown> | null
+}
+
+export type ArtRecord = {
+  id: number
+  title: string
+  description: string
+  image: CloudinaryAsset | null
+  created_at: string
+}
+
+export type StoryScriptRecord = {
+  id: number
+  title: string
+  sub_title: string
+  author_note: string
+  content: string
+  author_final_comment: string
+  cover_image: CloudinaryAsset | null
+  created_at: string
+}
+
 export async function loginAdmin(
   username: string,
   password: string,
@@ -143,6 +176,14 @@ export async function loginAdmin(
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
   return apiRequest<BlogPost[]>("/blog")
+}
+
+export async function fetchArtworks(): Promise<ArtRecord[]> {
+  return apiRequest<ArtRecord[]>("/art")
+}
+
+export async function fetchStoryScripts(): Promise<StoryScriptRecord[]> {
+  return apiRequest<StoryScriptRecord[]>("/story-script")
 }
 
 export async function createBlogPost(
