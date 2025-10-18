@@ -58,7 +58,7 @@ async def get_latest_curriculum_entry():
     if entry is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Curriculum entry not found",
+            detail="Nenhum currículo disponível no momento.",
         )
     return entry
 
@@ -83,7 +83,7 @@ async def download_latest_curriculum_entry() -> StreamingResponse:
     if entry is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Curriculum entry not found",
+            detail="Nenhum currículo disponível para download.",
         )
 
     filename = entry["file_name"] or "curriculum.csv"

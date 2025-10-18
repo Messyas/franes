@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { Download, Zap } from "lucide-react";
 import CardSobre from "@/componentes/CardSobre";
 import ModalDetalhes from "@/componentes/ModalDetalhes";
@@ -69,10 +69,6 @@ export default function SecaoSobre() {
           arquivo?: string;
         }
       | undefined;
-  const IconeCurriculo = cardCurriculo?.icone;
-  const cardsInformativos = dadosSobre.filter(
-    (item) => item.id !== "curriculo"
-  );
   const [curriculoDados, setCurriculoDados] =
     useState<CurriculumRecord | null>(null);
   const [curriculoErro, setCurriculoErro] = useState<string | null>(null);
@@ -166,24 +162,41 @@ export default function SecaoSobre() {
     ? ["Carregando currículo..."]
     : detalhesCurriculo?.conteudo ?? [];
 
-  const abrirModalCurriculo = () => {
-    if (!cardCurriculo) {
+  const curriculoDetalhesCombinados = {
+    ...(detalhesCurriculo ?? {}),
+    resumo: curriculoResumoModal,
+    conteudo: curriculoConteudoParaExibicao,
+    arquivo: curriculoDownloadUrl ?? detalhesCurriculo?.arquivo,
+  };
+
+  const curriculoItem = cardCurriculo
+    ? ({
+        ...cardCurriculo,
+        titulo: curriculoTitulo,
+        descricao: curriculoDescricao,
+        detalhes: curriculoDetalhesCombinados,
+      } as (typeof dadosSobre)[0])
+    : null;
+
+  const cardsParaExibicao = dadosSobre.map((item) =>
+    item.id === "curriculo" && curriculoItem ? curriculoItem : item
+  );
+
+  const handleCsvDownload = (
+    event: MouseEvent<HTMLAnchorElement>,
+    url: string | undefined
+  ) => {
+    if (url && url.trim()) {
       return;
     }
-
-    const itemComCurriculo = {
-      ...cardCurriculo,
-      titulo: curriculoTitulo,
-      descricao: curriculoDescricao,
-      detalhes: {
-        resumo: curriculoResumoModal,
-        conteudo: curriculoConteudoParaExibicao,
-        arquivo: curriculoDownloadUrl ?? undefined,
-      },
-    } as (typeof dadosSobre)[0];
-
-    setItemSelecionado(itemComCurriculo);
-    setModalAberto(true);
+    event.preventDefault();
+    event.stopPropagation();
+    const message = "Currículo indisponível para download no momento.";
+    if (typeof window !== "undefined") {
+      window.alert(message);
+    } else {
+      console.warn(message);
+    }
   };
 
   const renderizarConteudoModal = () => {
@@ -394,16 +407,15 @@ export default function SecaoSobre() {
               </li>
             ))}
           </ul>
-          {"arquivo" in detalhes && detalhes.arquivo && (
-            <a
-              href={detalhes.arquivo}
-              download
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Baixar currículo (CSV)
-            </a>
-          )}
+          <a
+            href={detalhes.arquivo ?? "#"}
+            download={detalhes.arquivo ? "" : undefined}
+            onClick={(event) => handleCsvDownload(event, detalhes.arquivo)}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Baixar currículo (CSV)
+          </a>
         </div>
       );
     }
@@ -432,8 +444,8 @@ export default function SecaoSobre() {
         </header>
 
         {/* Grid de cards informativos */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {cardsInformativos.map((item, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          {cardsParaExibicao.map((item, index) => (
             <CardSobre
               key={item.id}
               titulo={item.titulo}
@@ -443,59 +455,6 @@ export default function SecaoSobre() {
               onClick={() => abrirModal(item)}
             />
           ))}
-          {cardCurriculo && (
-            <div
-              key={cardCurriculo.id}
-              className="group p-6 bg-card/50 border border-border rounded-lg hover:border-primary/50 hover:bg-card/80 hover:scale-105 transition-all duration-300 neon-border animate-slide-up cursor-pointer flex flex-col justify-between md:aspect-square focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              style={{ animationDelay: `${cardsInformativos.length * 0.1}s` }}
-              onClick={abrirModalCurriculo}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  abrirModalCurriculo();
-                }
-              }}
-            >
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start justify-between gap-4">
-                  {IconeCurriculo && (
-                    <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                      <IconeCurriculo className="w-6 h-6 text-primary" />
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                    {curriculoTitulo}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {curriculoDescricao}
-                  </p>
-                </div>
-              </div>
-              {curriculoDownloadUrl ? (
-                <a
-                  href={curriculoDownloadUrl}
-                  download
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-all group-hover:translate-y-1"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <Download className="w-4 h-4" />
-                  Baixar CSV
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground shadow cursor-not-allowed"
-                  disabled
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  {curriculoCarregando ? "Carregando..." : "Indisponível"}
-                </button>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Seção de habilidades técnicas */}

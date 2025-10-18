@@ -1,4 +1,4 @@
-import { Code2, GraduationCap, Rocket, Briefcase, FileText } from "lucide-react"
+import { Code2, GraduationCap, Rocket, FileText } from "lucide-react"
 
 /**
  * Funções auxiliares para gerenciar dados e validações
@@ -90,33 +90,6 @@ export function obterDadosSobre() {
             tecnologias: ["React", "D3.js", "TypeScript"],
             status: "Em desenvolvimento",
           },
-        ],
-      },
-    },
-    {
-      id: "4",
-      titulo: "Objetivos",
-      descricao:
-        "Busco constantemente aprender novas tecnologias e contribuir para projetos que impactem positivamente a comunidade.",
-      icone: Briefcase,
-      detalhes: {
-        descricaoCompleta:
-          "Minha jornada no desenvolvimento é guiada pela busca constante de conhecimento e pelo desejo de criar soluções que façam diferença na vida das pessoas.",
-        objetivosCurto: [
-          "Dominar arquiteturas serverless e edge computing",
-          "Contribuir para projetos open-source relevantes",
-          "Aprofundar conhecimentos em performance web",
-        ],
-        objetivosLongo: [
-          "Trabalhar em empresas de tecnologia inovadoras",
-          "Desenvolver produtos que impactem milhões de usuários",
-          "Compartilhar conhecimento através de mentorias e conteúdo",
-        ],
-        valores: [
-          "Código limpo e manutenível",
-          "Aprendizado contínuo",
-          "Colaboração e trabalho em equipe",
-          "Impacto social positivo",
         ],
       },
     },
