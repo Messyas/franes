@@ -24,7 +24,7 @@ function createSummary(content: string): string {
 }
 
 function mapPostToView(post: BlogPost): PostViewModel {
-  const createdAt = new Date(post.created_at)
+  const createdAt = parseBlogDate(post.created_at)
   return {
     id: post.id,
     title: post.title,
@@ -37,6 +37,16 @@ function mapPostToView(post: BlogPost): PostViewModel {
     }),
     readingTimeLabel: `${post.reading_time} min`,
   }
+}
+
+function parseBlogDate(value: string): Date {
+  if (!value) {
+    return new Date(NaN)
+  }
+
+  const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+  const normalized = hasTimezone ? value : `${value}Z`
+  return new Date(normalized)
 }
 
 /**

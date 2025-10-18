@@ -28,6 +28,8 @@ const emptyForm: FormState = {
   content: "",
 }
 
+const MAX_TITLE_LENGTH = 100
+
 export default function AdminDashboard() {
   const { isAuthenticated, login, logout, token, error, clearError, isLoading } =
     useAuth()
@@ -145,6 +147,11 @@ export default function AdminDashboard() {
     const trimmedTitle = form.title.trim()
     if (!trimmedTitle) {
       setFormError("Título é obrigatório")
+      return
+    }
+
+    if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+      setFormError(`Título deve ter no máximo ${MAX_TITLE_LENGTH} caracteres`)
       return
     }
 

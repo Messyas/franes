@@ -11,12 +11,15 @@ from src.auth.router import router as auth_router
 from src.blog.router import router as blog_router
 from src.config import app_configs, settings
 from src.curriculum.router import router as curriculum_router
+from src.database import engine, metadata
 from src.story_script.router import router as story_script
 
 
 @asynccontextmanager
 async def lifespan(_application: FastAPI) -> AsyncGenerator:
-    # Startup
+    if settings.ENVIRONMENT.is_debug:
+        async with engine.begin() as connection:
+            await connection.run_sync(metadata.create_all)
     yield
     # Shutdown
 

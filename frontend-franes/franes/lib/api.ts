@@ -1,9 +1,56 @@
 "use client"
 
-const API_BASE_URL =
-  (process.env.NEXT_PUBLIC_API_URL &&
-    process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")) ||
-  "http://localhost:8000"
+function removeTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "")
+}
+
+function normalizeLeadingSlash(value: string): string {
+  return value.replace(/^\/+/, "")
+}
+
+function normalizePort(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const sanitized = value.trim().replace(/^:/, "")
+  return sanitized || undefined
+}
+
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
+const rawBasePath = process.env.NEXT_PUBLIC_API_BASE_PATH?.trim()
+const fallbackPort = normalizePort(
+  process.env.NEXT_PUBLIC_API_FALLBACK_PORT,
+) || "8000"
+
+const apiBasePath = rawBasePath
+  ? `/${normalizeLeadingSlash(removeTrailingSlash(rawBasePath))}`
+  : ""
+
+function resolveApiOrigin(): string {
+  if (rawApiUrl) {
+    return removeTrailingSlash(rawApiUrl)
+  }
+
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location
+    const portSegment = formatPort(protocol, fallbackPort)
+    return `${protocol}//${hostname}${portSegment}`
+  }
+
+  return `http://localhost:${fallbackPort}`
+}
+
+function formatPort(protocol: string, port: string): string {
+  if (!port) return ""
+  if ((protocol === "http:" && port === "80") || (protocol === "https:" && port === "443")) {
+    return ""
+  }
+  return `:${port}`
+}
+
+function buildApiUrl(path: string): string {
+  const origin = removeTrailingSlash(resolveApiOrigin())
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  return `${origin}${apiBasePath}${normalizedPath}`
+}
 
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
@@ -33,16 +80,16 @@ async function apiRequest<T>(
     requestHeaders.Authorization = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     method,
     headers: requestHeaders,
     body: requestBody,
     cache: "no-store",
-    credentials: "include",
+    credentials: "omit",
   })
 
   if (!response.ok) {
-    let message = "Erro inesperado ao comunicar com o servidor"
+    let message = `Erro ${response.status} ao comunicar com o servidor`
     try {
       const data = await response.json()
       message = data.detail ?? message
