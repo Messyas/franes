@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Calendar, Clock, Loader2, X } from "lucide-react"
+import { Calendar, Clock, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { BlogPost, fetchBlogPosts } from "@/lib/api"
@@ -14,6 +14,8 @@ type PostViewModel = {
   dateLabel: string
   readingTimeLabel: string
 }
+
+const SKELETON_ITEMS = Array.from({ length: 3 }, (_, index) => index)
 
 function createSummary(content: string): string {
   const stripped = content.replace(/\s+/g, " ").trim()
@@ -47,6 +49,29 @@ function parseBlogDate(value: string): Date {
   const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
   const normalized = hasTimezone ? value : `${value}Z`
   return new Date(normalized)
+}
+
+function BlogPostSkeleton({ index }: { index: number }) {
+  return (
+    <article
+      className="group relative overflow-hidden rounded-lg p-6 glass neon-border animate-slide-up"
+      style={{ animationDelay: `${index * 0.1}s` }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer" />
+      <div className="relative space-y-4 animate-pulse">
+        <div className="h-6 w-3/4 rounded bg-foreground/10" />
+        <div className="space-y-2">
+          <div className="h-4 w-full rounded bg-foreground/10" />
+          <div className="h-4 w-11/12 rounded bg-foreground/10" />
+          <div className="h-4 w-10/12 rounded bg-foreground/10" />
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="h-4 w-24 rounded bg-foreground/10" />
+          <div className="h-4 w-20 rounded bg-foreground/10" />
+        </div>
+      </div>
+    </article>
+  )
 }
 
 /**
@@ -91,9 +116,10 @@ export default function SecaoBlog() {
 
         {/* Lista de posts */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-            Carregando posts...
+          <div className="space-y-6">
+            {SKELETON_ITEMS.map((index) => (
+              <BlogPostSkeleton key={index} index={index} />
+            ))}
           </div>
         ) : error ? (
           <div className="glass-strong rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-destructive">
