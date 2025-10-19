@@ -97,7 +97,7 @@ export function obterDadosSobre() {
       id: "curriculo",
       titulo: "Currículo",
       descricao:
-        "Visualize meus dados profissionais e faça download do currículo em formato CSV.",
+        "Visualize meus dados profissionais e faça download do currículo em formato PDF.",
       icone: FileText,
       detalhes: {
         resumo:
@@ -109,7 +109,7 @@ export function obterDadosSobre() {
           "Resumo: Profissional em formação com experiência prática em desenvolvimento de aplicações web modernas e escaláveis.",
           "Objetivo: Oportunidades para aplicar conhecimentos em projetos impactantes e continuar evoluindo tecnicamente.",
         ],
-        arquivo: "/curriculo.csv",
+        arquivo: "/curriculo.pdf",
       },
     },
   ]

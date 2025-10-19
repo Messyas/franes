@@ -59,6 +59,16 @@ type RequestOptions = {
   body?: BodyInit | Record<string, unknown> | null
 }
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.status = status
+    this.name = "ApiError"
+  }
+}
+
 async function apiRequest<T>(
   path: string,
   { method = "GET", token, headers, body }: RequestOptions = {},
@@ -97,7 +107,11 @@ async function apiRequest<T>(
       /* ignore parse errors */
     }
 
-    throw new Error(message)
+    if (response.status === 401) {
+      message = "Sessão expirada ou credenciais inválidas. Faça login novamente."
+    }
+
+    throw new ApiError(response.status, message)
   }
 
   if (response.status === 204) {
@@ -174,7 +188,7 @@ export type CurriculumRecord = {
   title: string
   description: string | null
   file_name: string
-  csv_content: string
+  pdf_url: string | null
   created_at: string
   updated_at: string
 }
@@ -183,7 +197,7 @@ export type CurriculumInput = {
   title: string
   description?: string | null
   file_name: string
-  csv_content: string
+  pdf_base64: string
 }
 
 export async function loginAdmin(

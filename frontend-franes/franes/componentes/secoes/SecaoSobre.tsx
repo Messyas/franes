@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { ChevronRight, Download, MessageCircle } from "lucide-react";
+import { Download, MessageCircle } from "lucide-react";
 import CardSobre from "@/componentes/CardSobre";
 import ModalDetalhes from "@/componentes/ModalDetalhes";
 import {
@@ -11,49 +11,6 @@ import {
   type CurriculumRecord,
 } from "@/lib/api";
 import { obterDadosSobre } from "@/lib/funcoesAuxiliares";
-
-function parseCurriculumCsv(csv: string): string[] {
-  if (!csv) {
-    return [];
-  }
-
-  const rows = csv
-    .trim()
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) =>
-      line
-        .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-        .map((cell) => cell.replace(/^"|"$/g, "").trim())
-    );
-
-  if (!rows.length) {
-    return [];
-  }
-
-  const [firstRow, ...rest] = rows;
-  const headerIndicators = ["campo", "field", "chave", "header", "key"];
-  const isHeader =
-    firstRow.length >= 2 &&
-    headerIndicators.includes(firstRow[0].toLowerCase());
-
-  const dataRows = isHeader ? rest : rows;
-
-  return dataRows
-    .map((cells) => {
-      if (!cells.length) {
-        return null;
-      }
-      if (cells.length >= 2) {
-        const [key, ...values] = cells;
-        const value = values.join(", ").trim();
-        return `${key}: ${value || ""}`.trim();
-      }
-      return cells[0];
-    })
-    .filter((value): value is string => Boolean(value && value.trim()));
-}
 
 /**
  * Seção Sobre - Apresenta informações sobre Messyas
@@ -123,18 +80,18 @@ export default function SecaoSobre() {
     };
   }, []);
 
-  const curriculoConteudo = useMemo(() => {
-    if (!curriculoDados) {
-      return [];
-    }
-    return parseCurriculumCsv(curriculoDados.csv_content);
-  }, [curriculoDados]);
-
   const curriculoDownloadUrl = useMemo(() => {
     if (!curriculoDados) {
       return null;
     }
-    return buildApiUrl("/curriculum/latest/download");
+    const rawUrl = curriculoDados.pdf_url;
+    if (!rawUrl) {
+      return buildApiUrl("/curriculum/latest/download");
+    }
+    if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+      return rawUrl;
+    }
+    return buildApiUrl(rawUrl);
   }, [curriculoDados]);
 
   const curriculoTitulo =
@@ -152,16 +109,16 @@ export default function SecaoSobre() {
     ? "Estamos carregando as informações do currículo."
     : curriculoErro ?? curriculoDescricao;
 
-  const curriculoConteudoDisponivel =
-    !curriculoErro && curriculoConteudo.length > 0;
-
-  const curriculoConteudoParaExibicao = curriculoConteudoDisponivel
-    ? curriculoConteudo
-    : curriculoErro
-    ? ["Currículo indisponível no momento. Tente novamente mais tarde."]
-    : curriculoCarregando
-    ? ["Carregando currículo..."]
-    : detalhesCurriculo?.conteudo ?? [];
+  const curriculoConteudoParaExibicao =
+    curriculoCarregando
+      ? ["Carregando currículo..."]
+      : curriculoErro
+      ? ["Currículo indisponível no momento. Tente novamente mais tarde."]
+      : curriculoDados?.description
+      ? [curriculoDados.description]
+      : detalhesCurriculo?.conteudo ?? [
+          "Confira o currículo completo no PDF disponível para download.",
+        ];
 
   const curriculoDetalhesCombinados = {
     ...(detalhesCurriculo ?? {}),
@@ -183,7 +140,7 @@ export default function SecaoSobre() {
     item.id === "curriculo" && curriculoItem ? curriculoItem : item
   );
 
-  const handleCsvDownload = (
+  const handleCurriculoDownload = (
     event: MouseEvent<HTMLAnchorElement>,
     url: string | undefined
   ) => {
@@ -413,11 +370,11 @@ export default function SecaoSobre() {
           <a
             href={detalhes.arquivo ?? "#"}
             download={detalhes.arquivo ? "" : undefined}
-            onClick={(event) => handleCsvDownload(event, detalhes.arquivo)}
+            onClick={(event) => handleCurriculoDownload(event, detalhes.arquivo)}
             className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
           >
             <Download className="w-4 h-4" />
-            Baixar currículo (CSV)
+            Baixar currículo (PDF)
           </a>
         </div>
       );

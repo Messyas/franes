@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/auth-context"
 import {
+  ApiError,
   type CurriculumInput,
   type CurriculumRecord,
   createCurriculumEntry,
@@ -19,18 +20,18 @@ type CurriculumFormState = {
   title: string
   description: string
   fileName: string
-  csvContent: string
+  fileBase64: string
 }
 
 const emptyForm: CurriculumFormState = {
   title: "",
   description: "",
   fileName: "",
-  csvContent: "",
+  fileBase64: "",
 }
 
 export default function CurriculumAdminPage() {
-  const { token } = useAuth()
+  const { token, logout } = useAuth()
   const [entries, setEntries] = useState<CurriculumRecord[]>([])
   const [isLoadingEntries, setIsLoadingEntries] = useState(false)
   const [form, setForm] = useState<CurriculumFormState>(emptyForm)
@@ -60,26 +61,48 @@ export default function CurriculumAdminPage() {
   }, [])
 
   const isFormValid = useMemo(() => {
-    return Boolean(form.title.trim() && form.fileName && form.csvContent)
+    return Boolean(form.title.trim() && form.fileName && form.fileBase64)
   }, [form])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) {
-      setForm((prev) => ({ ...prev, fileName: "", csvContent: "" }))
+      setForm((prev) => ({ ...prev, fileName: "", fileBase64: "" }))
+      return
+    }
+
+    const isPdf =
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf")
+    if (!isPdf) {
+      setFormError("Selecione um arquivo PDF válido.")
+      setForm((prev) => ({ ...prev, fileName: "", fileBase64: "" }))
       return
     }
 
     try {
-      const text = await file.text()
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result
+          if (typeof result === "string") {
+            const [, data] = result.split(",")
+            resolve(data ?? "")
+          } else {
+            reject(new Error("Formato de arquivo inválido."))
+          }
+        }
+        reader.onerror = () => reject(reader.error ?? new Error("Não foi possível ler o arquivo selecionado."))
+        reader.readAsDataURL(file)
+      })
       setForm((prev) => ({
         ...prev,
         fileName: file.name,
-        csvContent: text,
+        fileBase64: base64,
       }))
       setFormError(null)
     } catch {
-      setFormError("Não foi possível ler o arquivo selecionado.")
+      setFormError("Não foi possível ler o arquivo PDF selecionado.")
     }
   }
 
@@ -90,7 +113,7 @@ export default function CurriculumAdminPage() {
       return
     }
     if (!isFormValid) {
-      setFormError("Informe o título e selecione um arquivo CSV válido.")
+      setFormError("Informe o título e selecione um arquivo PDF válido.")
       return
     }
 
@@ -98,7 +121,7 @@ export default function CurriculumAdminPage() {
       title: form.title.trim(),
       description: form.description.trim() || null,
       file_name: form.fileName,
-      csv_content: form.csvContent,
+      pdf_base64: form.fileBase64,
     }
 
     setIsSaving(true)
@@ -109,11 +132,16 @@ export default function CurriculumAdminPage() {
       setEntries((prev) => [created, ...prev])
       setForm(emptyForm)
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Não foi possível enviar o currículo. Tente novamente."
-      setFormError(msg)
+      if (err instanceof ApiError && err.status === 401) {
+        logout()
+        setFormError("Sessão expirada. Faça login novamente para enviar o currículo.")
+      } else {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Não foi possível enviar o currículo. Tente novamente."
+        setFormError(msg)
+      }
     } finally {
       setIsSaving(false)
     }
@@ -134,11 +162,16 @@ export default function CurriculumAdminPage() {
       await deleteCurriculumEntry(entry.id, token)
       setEntries((prev) => prev.filter((item) => item.id !== entry.id))
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Não foi possível remover o currículo selecionado."
-      setListError(msg)
+      if (err instanceof ApiError && err.status === 401) {
+        logout()
+        setListError("Sessão expirada. Faça login novamente para continuar.")
+      } else {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Não foi possível remover o currículo selecionado."
+        setListError(msg)
+      }
     }
   }
 
@@ -147,7 +180,7 @@ export default function CurriculumAdminPage() {
       <header className="space-y-2">
         <h1 className="text-3xl font-bold neon-glow">Gerenciar Currículo</h1>
         <p className="text-sm text-muted-foreground">
-          Envie novos arquivos CSV ou remova versões antigas do currículo.
+          Envie novos arquivos PDF ou remova versões antigas do currículo.
         </p>
       </header>
 
@@ -155,7 +188,7 @@ export default function CurriculumAdminPage() {
         <header className="mb-6">
           <h2 className="text-2xl font-semibold text-foreground">Novo arquivo</h2>
           <p className="text-sm text-muted-foreground">
-            Preencha as informações e selecione o arquivo CSV exportado.
+            Preencha as informações e selecione o arquivo PDF atualizado.
           </p>
         </header>
 
@@ -191,7 +224,7 @@ export default function CurriculumAdminPage() {
 
           <div className="space-y-2">
             <label htmlFor="curriculum-file" className="text-sm font-medium">
-              Arquivo CSV
+              Arquivo PDF
             </label>
             <div className="flex flex-col gap-2 rounded-md border border-primary/20 bg-background/70 p-4">
               <div className="flex items-center justify-between">
@@ -215,7 +248,7 @@ export default function CurriculumAdminPage() {
               <Input
                 id="curriculum-file"
                 type="file"
-                accept=".csv"
+                accept=".pdf,application/pdf"
                 className="hidden"
                 onChange={handleFileChange}
               />
