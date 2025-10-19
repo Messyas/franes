@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import { Calendar, Clock, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { BlogPost, fetchBlogPosts } from "@/lib/api"
+import { useContentCache } from "@/contexts/content-cache-context"
+import type { BlogPost } from "@/lib/api"
 
 type PostViewModel = {
   id: number
@@ -80,28 +81,21 @@ function BlogPostSkeleton({ index }: { index: number }) {
  */
 export default function SecaoBlog() {
   const [postSelecionado, setPostSelecionado] = useState<PostViewModel | null>(null)
-  const [rawPosts, setRawPosts] = useState<BlogPost[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    blogPosts,
+    blogPostsStatus,
+    blogPostsError,
+    loadBlogPosts,
+  } = useContentCache()
 
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const data = await fetchBlogPosts()
-        setRawPosts(data)
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Não foi possível carregar os posts do blog."
-        setError(message)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+    void loadBlogPosts()
+  }, [loadBlogPosts])
 
-    void loadPosts()
-  }, [])
-
-  const posts = useMemo(() => rawPosts.map(mapPostToView), [rawPosts])
+  const posts = useMemo(() => (blogPosts ?? []).map(mapPostToView), [blogPosts])
+  const isLoading = blogPostsStatus === "idle" || blogPostsStatus === "loading"
+  const error =
+    blogPostsStatus === "error" && (blogPosts?.length ?? 0) === 0 ? blogPostsError : null
 
   return (
     <section className="h-full w-full overflow-y-auto px-6 py-12 md:px-12 lg:px-24" aria-labelledby="titulo-blog">

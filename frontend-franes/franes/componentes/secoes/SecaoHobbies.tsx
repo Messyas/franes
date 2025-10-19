@@ -1,16 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Calendar, Loader2, X } from "lucide-react"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import CardItemHobby from "@/componentes/CardItemHobby"
+import { useContentCache } from "@/contexts/content-cache-context"
 import {
   type ArtRecord,
   type StoryScriptRecord,
-  fetchArtworks,
-  fetchStoryScripts,
 } from "@/lib/api"
 
 type CategoriaId = "roteiros" | "desenhos"
@@ -60,61 +59,37 @@ export default function SecaoHobbies() {
     aspectRatio: "1:1" | "A4"
   } | null>(null)
   const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaId>("roteiros")
-  const [itensPorCategoria, setItensPorCategoria] = useState<ItemsByCategory>({
-    roteiros: [],
-    desenhos: [],
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+
+  const {
+    artworks,
+    artworksStatus,
+    artworksError,
+    loadArtworks,
+    storyScripts,
+    storyScriptsStatus,
+    storyScriptsError,
+    loadStoryScripts,
+  } = useContentCache()
 
   useEffect(() => {
-    let isMounted = true
+    void loadStoryScripts()
+    void loadArtworks()
+  }, [loadArtworks, loadStoryScripts])
 
-    const loadData = async () => {
-      setIsLoading(true)
-      setError(null)
+  const itensPorCategoria = useMemo<ItemsByCategory>(
+    () => ({
+      roteiros: sortByTimestamp((storyScripts ?? []).map(mapStoryScriptToItem)),
+      desenhos: sortByTimestamp((artworks ?? []).map(mapArtToItem)),
+    }),
+    [artworks, storyScripts],
+  )
 
-      try {
-        const [roteiros, desenhos] = await Promise.all([
-          fetchStoryScripts(),
-          fetchArtworks(),
-        ])
-
-        if (!isMounted) {
-          return
-        }
-
-        setItensPorCategoria({
-          roteiros: sortByTimestamp(
-            roteiros.map(mapStoryScriptToItem),
-          ),
-          desenhos: sortByTimestamp(
-            desenhos.map(mapArtToItem),
-          ),
-        })
-      } catch (err) {
-        if (!isMounted) {
-          return
-        }
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Não foi possível carregar os hobbies."
-        setError(message)
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    void loadData()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
+  const isLoading =
+    artworksStatus === "idle" ||
+    storyScriptsStatus === "idle" ||
+    artworksStatus === "loading" ||
+    storyScriptsStatus === "loading"
+  
   const categorias: CategoriaHobby[] = CATEGORY_CONFIG.map((config) => ({
     ...config,
     itens: itensPorCategoria[config.id],
@@ -125,6 +100,14 @@ export default function SecaoHobbies() {
     categorias[0]
 
   const itensCategoriaAtual = categoriaAtual?.itens ?? []
+  const categoriaAtivaErro =
+    categoriaAtiva === "roteiros"
+      ? storyScriptsStatus === "error" && (storyScripts?.length ?? 0) === 0
+        ? storyScriptsError
+        : null
+      : artworksStatus === "error" && (artworks?.length ?? 0) === 0
+        ? artworksError
+        : null
 
   const handleSelectItem = (item: ItemHobby, aspectRatio: "1:1" | "A4") => {
     setItemSelecionado({ item, aspectRatio })
@@ -180,9 +163,9 @@ export default function SecaoHobbies() {
               <Loader2 className="mr-3 h-5 w-5 animate-spin" />
               Carregando itens...
             </div>
-          ) : error ? (
+          ) : categoriaAtivaErro ? (
             <div className="col-span-full glass-strong rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-destructive">
-              {error}
+              {categoriaAtivaErro}
             </div>
           ) : itensCategoriaAtual.length === 0 ? (
             <p className="col-span-full text-center text-muted-foreground">
