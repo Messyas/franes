@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
-import { Download, Zap } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Download, MessageCircle } from "lucide-react";
 import CardSobre from "@/componentes/CardSobre";
 import ModalDetalhes from "@/componentes/ModalDetalhes";
 import {
@@ -457,33 +458,24 @@ export default function SecaoSobre() {
           ))}
         </div>
 
-        {/* Seção de habilidades técnicas */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.4s" }}>
-          <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
-            <Zap className="w-8 h-8 text-primary" />
-            Habilidades Técnicas
+        {/* Call to action para chat fake */}
+        <div className="animate-slide-up flex flex-col items-start" style={{ animationDelay: "0.4s" }}>
+          <h2 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <MessageCircle className="w-8 h-8 text-primary" />
+            Fale com meu fake
           </h2>
-
-          <div className="flex flex-wrap gap-3">
-            {[
-              "React",
-              "Next.js",
-              "TypeScript",
-              "Node.js",
-              "Python",
-              "TailwindCSS",
-              "PostgreSQL",
-              "Git",
-            ].map((skill, index) => (
-              <span
-                key={skill}
-                className="px-4 py-2 glass border-primary/30 rounded-lg text-foreground font-mono text-sm hover:glass-strong hover:border-primary hover:scale-105 transition-all duration-300 cursor-default neon-border"
-                style={{ animationDelay: `${0.5 + index * 0.05}s` }}
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
+          <Link
+            href="/fake-chat"
+            className="group mt-6 inline-flex items-center gap-4 rounded-full border border-border bg-card/60 px-6 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:border-primary/50 hover:bg-card/80 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background neon-border"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+              <MessageCircle className="h-5 w-5" />
+            </span>
+            <span className="text-lg font-semibold tracking-wide transition-colors group-hover:text-primary">
+              Começar chat
+            </span>
+            <ChevronRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
+          </Link>
         </div>
       </div>
       <ModalDetalhes
