@@ -31,9 +31,7 @@ COPY poetry.lock pyproject.toml /src/
 WORKDIR /src
 
 RUN --mount=type=cache,target="$POETRY_CACHE_DIR" \
-  echo "$ENVIRONMENT" \
-  # Install deps:
-  && poetry run pip install -U pip \
+  pip install --upgrade pip setuptools wheel \
   && poetry install \
     --no-interaction --no-ansi --sync --with prod
 
