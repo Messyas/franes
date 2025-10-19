@@ -21,7 +21,6 @@ type ArtFormState = {
   title: string
   description: string
   image_url: string
-  image_secure_url: string
   image_public_id: string
 }
 
@@ -29,13 +28,11 @@ const emptyForm: ArtFormState = {
   title: "",
   description: "",
   image_url: "",
-  image_secure_url: "",
   image_public_id: "",
 }
 
 function buildImage(form: ArtFormState): CloudinaryAsset | null {
   const url = form.image_url.trim()
-  const secureUrl = form.image_secure_url.trim()
   const publicId = form.image_public_id.trim()
 
   if (!url) {
@@ -49,7 +46,6 @@ function buildImage(form: ArtFormState): CloudinaryAsset | null {
   return {
     public_id: publicId,
     url,
-    secure_url: secureUrl || undefined,
   }
 }
 
@@ -93,7 +89,6 @@ export default function ArtworksAdminPage() {
       title: art.title,
       description: art.description,
       image_url: art.image?.url ?? "",
-      image_secure_url: art.image?.secure_url ?? "",
       image_public_id: art.image?.public_id ?? "",
     })
     setFormError(null)
@@ -272,23 +267,6 @@ export default function ArtworksAdminPage() {
                 }
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="art-image-secure-url" className="text-sm font-medium">
-              Secure URL (opcional)
-            </label>
-            <Input
-              id="art-image-secure-url"
-              placeholder="https://res.cloudinary.com/... (https)"
-              value={form.image_secure_url}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  image_secure_url: event.target.value,
-                }))
-              }
-            />
           </div>
 
           {formError && (

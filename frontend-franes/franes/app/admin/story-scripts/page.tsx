@@ -24,7 +24,6 @@ type StoryScriptFormState = {
   content: string
   author_final_comment: string
   cover_image_url: string
-  cover_image_secure_url: string
   cover_image_public_id: string
 }
 
@@ -35,14 +34,12 @@ const emptyForm: StoryScriptFormState = {
   content: "",
   author_final_comment: "",
   cover_image_url: "",
-  cover_image_secure_url: "",
   cover_image_public_id: "",
 }
 
 function buildCoverImage(form: StoryScriptFormState): CloudinaryAsset | null {
   const url = form.cover_image_url.trim()
   const publicId = form.cover_image_public_id.trim()
-  const secureUrl = form.cover_image_secure_url.trim()
 
   if (!url) {
     return null
@@ -55,7 +52,6 @@ function buildCoverImage(form: StoryScriptFormState): CloudinaryAsset | null {
   return {
     public_id: publicId,
     url,
-    secure_url: secureUrl || undefined,
   }
 }
 
@@ -102,7 +98,6 @@ export default function StoryScriptsAdminPage() {
       content: script.content,
       author_final_comment: script.author_final_comment,
       cover_image_url: script.cover_image?.url ?? "",
-      cover_image_secure_url: script.cover_image?.secure_url ?? "",
       cover_image_public_id: script.cover_image?.public_id ?? "",
     })
     setFormError(null)
@@ -341,23 +336,6 @@ export default function StoryScriptsAdminPage() {
                 }
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="script-cover-secure-url" className="text-sm font-medium">
-              Secure URL (opcional)
-            </label>
-            <Input
-              id="script-cover-secure-url"
-              placeholder="https://res.cloudinary.com/... (https)"
-              value={form.cover_image_secure_url}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  cover_image_secure_url: event.target.value,
-                }))
-              }
-            />
           </div>
 
           {formError && (
