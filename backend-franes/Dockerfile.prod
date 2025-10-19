@@ -21,6 +21,7 @@ SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 
 RUN apt-get update && \
     apt-get install -y gcc libpq-dev curl && \
+    pip install --upgrade pip setuptools wheel && \
     pip install "poetry==${POETRY_VERSION}" && \
     poetry --version && \
     apt-get clean && \
@@ -31,8 +32,7 @@ COPY poetry.lock pyproject.toml /src/
 WORKDIR /src
 
 RUN --mount=type=cache,target="$POETRY_CACHE_DIR" \
-  pip install --upgrade pip setuptools wheel \
-  && poetry install \
+  poetry install \
     --no-interaction --no-ansi --sync --with prod
 
 COPY . .
