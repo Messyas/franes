@@ -188,6 +188,8 @@ export type CurriculumRecord = {
   title: string
   description: string | null
   file_name: string
+  csv_content?: string | null
+  pdf_base64?: string | null
   pdf_url: string | null
   created_at: string
   updated_at: string

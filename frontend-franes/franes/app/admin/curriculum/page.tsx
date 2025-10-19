@@ -47,11 +47,16 @@ export default function CurriculumAdminPage() {
         const data = await fetchCurriculumEntries()
         setEntries(data)
       } catch (err) {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Não foi possível carregar os currículos."
-        setListError(msg)
+        if (err instanceof ApiError && err.status === 401) {
+          logout()
+          setListError("Sessão expirada. Faça login novamente para continuar.")
+        } else {
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Não foi possível carregar os currículos."
+          setListError(msg)
+        }
       } finally {
         setIsLoadingEntries(false)
       }
@@ -92,7 +97,8 @@ export default function CurriculumAdminPage() {
             reject(new Error("Formato de arquivo inválido."))
           }
         }
-        reader.onerror = () => reject(reader.error ?? new Error("Não foi possível ler o arquivo selecionado."))
+        reader.onerror = () =>
+          reject(reader.error ?? new Error("Não foi possível ler o arquivo selecionado."))
         reader.readAsDataURL(file)
       })
       setForm((prev) => ({

@@ -86,6 +86,9 @@ export default function SecaoSobre() {
     }
     const rawUrl = curriculoDados.pdf_url;
     if (!rawUrl) {
+      if (curriculoDados.pdf_base64) {
+        return `data:application/pdf;base64,${curriculoDados.pdf_base64}`;
+      }
       return buildApiUrl("/curriculum/latest/download");
     }
     if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
