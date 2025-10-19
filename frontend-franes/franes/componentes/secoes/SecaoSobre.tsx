@@ -62,16 +62,16 @@ function parseCurriculumCsv(csv: string): string[] {
 export default function SecaoSobre() {
   const dadosSobre = obterDadosSobre();
   const cardCurriculo = dadosSobre.find((item) => item.id === "curriculo");
-  const detalhesCurriculo =
-    cardCurriculo?.detalhes as
-      | {
-          resumo?: string;
-          conteudo?: string[];
-          arquivo?: string;
-        }
-      | undefined;
-  const [curriculoDados, setCurriculoDados] =
-    useState<CurriculumRecord | null>(null);
+  const detalhesCurriculo = cardCurriculo?.detalhes as
+    | {
+        resumo?: string;
+        conteudo?: string[];
+        arquivo?: string;
+      }
+    | undefined;
+  const [curriculoDados, setCurriculoDados] = useState<CurriculumRecord | null>(
+    null
+  );
   const [curriculoErro, setCurriculoErro] = useState<string | null>(null);
   const [curriculoCarregando, setCurriculoCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
@@ -399,7 +399,9 @@ export default function SecaoSobre() {
       return (
         <div className="space-y-5">
           {"resumo" in detalhes && detalhes.resumo && (
-            <p className="text-foreground/90 leading-relaxed">{detalhes.resumo}</p>
+            <p className="text-foreground/90 leading-relaxed">
+              {detalhes.resumo}
+            </p>
           )}
           <ul className="space-y-3">
             {detalhes.conteudo.map((linha: string, index: number) => (
@@ -459,22 +461,21 @@ export default function SecaoSobre() {
         </div>
 
         {/* Call to action para chat fake */}
-        <div className="animate-slide-up flex flex-col items-start" style={{ animationDelay: "0.4s" }}>
-          <h2 className="text-3xl font-bold text-foreground flex items-center gap-3">
+        <div
+          className="animate-slide-up flex flex-col items-start"
+          style={{ animationDelay: "0.4s" }}
+        >
+          <h2 className="text-3xl font-bold text-foreground flex items-center gap-4">
             <MessageCircle className="w-8 h-8 text-primary" />
             Fale com meu fake
           </h2>
           <Link
             href="/fake-chat"
-            className="group mt-6 inline-flex items-center gap-4 rounded-full border border-border bg-card/60 px-6 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:border-primary/50 hover:bg-card/80 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background neon-border"
+            className="group mt-10 inline-flex items-center gap-4 rounded-full border border-border bg-card/60 px-6 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:border-primary/50 hover:bg-card/80 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background neon-border"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-              <MessageCircle className="h-5 w-5" />
-            </span>
             <span className="text-lg font-semibold tracking-wide transition-colors group-hover:text-primary">
               Começar chat
             </span>
-            <ChevronRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
           </Link>
         </div>
       </div>
