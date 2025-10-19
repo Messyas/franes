@@ -54,13 +54,6 @@ const loadedImageCache = new Set<string>()
 const FLIP_DELAY_MS = 700
 const FLIP_DURATION_MS = 700
 
-const CARD_BACK_VARIANTS: Record<CategoriaId, string> = {
-  desenhos:
-    "bg-gradient-to-br from-primary/40 via-background/80 to-background/95 text-primary",
-  roteiros:
-    "bg-gradient-to-br from-accent/40 via-background/80 to-background/95 text-accent",
-}
-
 const CARD_SYMBOL_VARIANTS: Record<CategoriaId, { topLeft: string; bottomRight: string; label: string }> = {
   desenhos: { topLeft: "FR", bottomRight: "NES", label: "Art" },
   roteiros: { topLeft: "SC", bottomRight: "PT", label: "Story" },
@@ -95,23 +88,27 @@ export default function CardItemHobby({
 }: CardItemHobbyProps) {
   const aspectClass = aspectRatio === "1:1" ? "aspect-square" : "aspect-[1/1.414]"
   const imageSrc = useMemo(() => resolveImageSrc(imagem), [imagem])
-  const isArtworkCard = categoria === "desenhos"
-  const isSkeleton = isArtworkCard && isSkeletonProp
+  const isDeckCard = categoria === "desenhos" || categoria === "roteiros"
+  const isSkeleton = isDeckCard && isSkeletonProp
   const cachedImage = useMemo(() => loadedImageCache.has(imageSrc), [imageSrc])
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(() =>
-    isSkeleton ? false : cachedImage,
+    isDeckCard ? (!isSkeleton && cachedImage) : true,
   )
   const [shouldShowFront, setShouldShowFront] = useState<boolean>(() =>
-    isSkeleton ? false : cachedImage,
+    isDeckCard ? (!isSkeleton && cachedImage) : true,
   )
   const [isAnimatingFlip, setIsAnimatingFlip] = useState<boolean>(false)
-  const hasAnimatedOnceRef = useRef<boolean>(isSkeleton ? false : cachedImage)
+  const hasAnimatedOnceRef = useRef<boolean>(
+    isDeckCard ? (!isSkeleton && cachedImage) : true,
+  )
   const flipDelayTimeoutRef = useRef<number | null>(null)
   const flipAnimationTimeoutRef = useRef<number | null>(null)
-  const [deckAnimationActive] = useState<boolean>(() => isArtworkCard && (isSkeleton || !cachedImage))
+  const [deckAnimationActive] = useState<boolean>(() =>
+    isDeckCard && (isSkeleton || !cachedImage),
+  )
 
   useEffect(() => {
-    if (!isArtworkCard || isSkeleton) {
+    if (!isDeckCard || isSkeleton) {
       return
     }
 
@@ -131,17 +128,17 @@ export default function CardItemHobby({
         flipAnimationTimeoutRef.current = null
       }
     }
-  }, [imageSrc, isArtworkCard, isSkeleton])
+  }, [imageSrc, isDeckCard, isSkeleton])
 
   const handleImageComplete = useCallback(() => {
-    if (!isArtworkCard || isSkeleton) {
+    if (!isDeckCard || isSkeleton) {
       return
     }
 
     loadedImageCache.add(imageSrc)
     setIsImageLoaded(true)
 
-    if (isArtworkCard && !hasAnimatedOnceRef.current) {
+    if (isDeckCard && !hasAnimatedOnceRef.current) {
       hasAnimatedOnceRef.current = true
       if (flipDelayTimeoutRef.current !== null) {
         window.clearTimeout(flipDelayTimeoutRef.current)
@@ -159,10 +156,10 @@ export default function CardItemHobby({
           setIsAnimatingFlip(false)
         }, FLIP_DURATION_MS)
       }, FLIP_DELAY_MS)
-    } else if (isArtworkCard) {
+    } else if (isDeckCard) {
       setShouldShowFront(true)
     }
-  }, [imageSrc, isArtworkCard, isSkeleton])
+  }, [imageSrc, isDeckCard, isSkeleton])
 
   const handleImageError = useCallback(() => {
     handleImageComplete()
@@ -174,7 +171,9 @@ export default function CardItemHobby({
   const animationStyle = deckAnimationActive
     ? { animationDelay: `${delay}s` }
     : undefined
-  const cardBackStyles = CARD_BACK_VARIANTS[categoria]
+  const deckAnimationClass = deckAnimationActive
+    ? `deck-enter${aspectRatio === "1:1" ? " square" : ""}`
+    : ""
   const cardSymbol = CARD_SYMBOL_VARIANTS[categoria]
   const cardBackClassName =
     "absolute inset-0 overflow-hidden rounded-lg glass group-hover:glass-strong neon-border transition-all duration-300 [backface-visibility:hidden]"
@@ -187,10 +186,10 @@ export default function CardItemHobby({
       aria-disabled={isSkeleton}
     >
       {/* Container da imagem */}
-      {isArtworkCard ? (
+      {isDeckCard ? (
         <div className={`relative ${aspectClass} w-full mb-4`}>
           <div
-            className={`relative h-full w-full [perspective:1600px] ${deckAnimationActive ? "deck-enter" : ""} ${
+            className={`relative h-full w-full [perspective:1600px] ${deckAnimationClass} ${
               isSkeleton ? "animate-pulse" : ""
             }`}
             style={animationStyle}
@@ -208,7 +207,7 @@ export default function CardItemHobby({
             >
               {/* Verso da carta */}
               <div className={cardBackClassName}>
-                <div className={`absolute inset-0 opacity-90 ${cardBackStyles}`} />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-background/80 to-background/95 opacity-90" />
                 <div className="absolute inset-3 rounded-xl border border-primary/40" />
                 <div className="absolute inset-6 rounded-lg border border-primary/20" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-primary">

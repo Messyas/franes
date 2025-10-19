@@ -116,9 +116,17 @@ export default function SecaoHobbies() {
   const shouldShowEmptyState =
     !isLoading && (itensCategoriaAtual.length ?? 0) === 0
   const shouldShowSkeletonPlaceholders =
-    categoriaAtual?.id === "desenhos" &&
-    (artworksStatus === "idle" || artworksStatus === "loading") &&
-    (itensCategoriaAtual.length ?? 0) === 0
+    categoriaAtual?.id === "desenhos"
+      ? (artworksStatus === "idle" || artworksStatus === "loading") &&
+        (itensCategoriaAtual.length ?? 0) === 0
+      : categoriaAtual?.id === "roteiros"
+        ? (storyScriptsStatus === "idle" || storyScriptsStatus === "loading") &&
+          (itensCategoriaAtual.length ?? 0) === 0
+        : false
+  const skeletonCount =
+    categoriaAtual?.aspectRatio === "1:1"
+      ? 4
+      : 3
 
   return (
     <section
@@ -170,15 +178,15 @@ export default function SecaoHobbies() {
               {categoriaAtivaErro}
             </div>
           ) : shouldShowSkeletonPlaceholders ? (
-            Array.from({ length: 3 }).map((_, index) => (
+            Array.from({ length: skeletonCount }).map((_, index) => (
               <CardItemHobby
-                key={`skeleton-desenhos-${index}`}
+                key={`skeleton-${categoriaAtual?.id ?? "categoria"}-${index}`}
                 titulo="Carregando desenho"
                 descricao=""
                 data=""
                 imagem=""
-                aspectRatio={categoriaAtual?.aspectRatio ?? "A4"}
-                categoria="desenhos"
+                aspectRatio={categoriaAtual?.aspectRatio ?? "1:1"}
+                categoria={categoriaAtual?.id ?? "roteiros"}
                 delay={index * 0.1}
                 isSkeleton
               />
