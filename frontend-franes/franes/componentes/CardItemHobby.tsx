@@ -142,7 +142,8 @@ export default function CardItemHobby({
   const flipDelayTimeoutRef = useRef<number | null>(null)
   const flipAnimationTimeoutRef = useRef<number | null>(null)
   const [deckAnimationActive] = useState<boolean>(() =>
-    isDeckCard && (isSkeleton || !cachedImage),
+    isDeckCard &&
+    (isSkeleton || (categoria === "desenhos" && !cachedImage)),
   )
 
   useEffect(() => {
