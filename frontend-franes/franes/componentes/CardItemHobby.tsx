@@ -54,6 +54,18 @@ const loadedImageCache = new Set<string>()
 const FLIP_DELAY_MS = 700
 const FLIP_DURATION_MS = 700
 
+const CARD_BACK_VARIANTS: Record<CategoriaId, string> = {
+  desenhos:
+    "bg-gradient-to-br from-primary/40 via-background/80 to-background/95 text-primary",
+  roteiros:
+    "bg-gradient-to-br from-accent/40 via-background/80 to-background/95 text-accent",
+}
+
+const CARD_SYMBOL_VARIANTS: Record<CategoriaId, { topLeft: string; bottomRight: string; label: string }> = {
+  desenhos: { topLeft: "FR", bottomRight: "NES", label: "Art" },
+  roteiros: { topLeft: "SC", bottomRight: "PT", label: "Story" },
+}
+
 interface CardItemHobbyProps {
   titulo: string
   descricao: string
@@ -159,9 +171,13 @@ export default function CardItemHobby({
   const articleClasses = `group ${
     isSkeleton ? "cursor-default" : "cursor-pointer"
   } animate-slide-up`
-  const deckAnimationStyle = deckAnimationActive
+  const animationStyle = deckAnimationActive
     ? { animationDelay: `${delay}s` }
     : undefined
+  const cardBackStyles = CARD_BACK_VARIANTS[categoria]
+  const cardSymbol = CARD_SYMBOL_VARIANTS[categoria]
+  const cardBackClassName =
+    "absolute inset-0 overflow-hidden rounded-lg glass group-hover:glass-strong neon-border transition-all duration-300 [backface-visibility:hidden]"
 
   return (
     <article
@@ -177,7 +193,7 @@ export default function CardItemHobby({
             className={`relative h-full w-full [perspective:1600px] ${deckAnimationActive ? "deck-enter" : ""} ${
               isSkeleton ? "animate-pulse" : ""
             }`}
-            style={deckAnimationStyle}
+            style={animationStyle}
           >
             <div
               className={`relative h-full w-full [transform-style:preserve-3d] ${
@@ -191,8 +207,8 @@ export default function CardItemHobby({
               }`}
             >
               {/* Verso da carta */}
-              <div className="absolute inset-0 overflow-hidden rounded-lg glass group-hover:glass-strong neon-border transition-all duration-300 [backface-visibility:hidden]">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-background/80 to-background/95 opacity-90" />
+              <div className={cardBackClassName}>
+                <div className={`absolute inset-0 opacity-90 ${cardBackStyles}`} />
                 <div className="absolute inset-3 rounded-xl border border-primary/40" />
                 <div className="absolute inset-6 rounded-lg border border-primary/20" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-primary">
@@ -201,13 +217,13 @@ export default function CardItemHobby({
                     <div className="absolute w-12 h-12 border-2 border-primary/60 rounded-full animate-pulse-glow" />
                   </div>
                   <span className="font-semibold uppercase tracking-[0.4em] text-xs text-primary/80">
-                    Art
+                    {cardSymbol.label}
                   </span>
                   <div className="absolute top-4 left-4 text-xs font-mono text-primary/70 rotate-[-10deg]">
-                    FR
+                    {cardSymbol.topLeft}
                   </div>
                   <div className="absolute bottom-4 right-4 text-xs font-mono text-primary/70 rotate-[10deg]">
-                    NES
+                    {cardSymbol.bottomRight}
                   </div>
                 </div>
               </div>
@@ -237,6 +253,7 @@ export default function CardItemHobby({
       ) : (
         <div
           className={`relative ${aspectClass} w-full overflow-hidden rounded-lg mb-4 glass hover:glass-strong neon-border transition-all duration-300`}
+          style={animationStyle}
         >
           <Image
             src={imageSrc}

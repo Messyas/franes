@@ -222,6 +222,29 @@
   animation: deckSpread 0.8s cubic-bezier(0.26, 0.74, 0.25, 1) forwards;
 }
 
+.deck-enter.square {
+  animation-duration: 0.7s;
+  animation-name: deckSpreadShort;
+}
+
+@keyframes deckSpreadShort {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%) rotate(-8deg) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-10%) rotate(-3deg) scale(1);
+  }
+  80% {
+    transform: translateX(6%) rotate(2deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+
 @keyframes neon-flicker {
   0%,
   100% {
