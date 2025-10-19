@@ -21,10 +21,10 @@ SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 
 RUN apt-get update && \
     apt-get install -y gcc libpq-dev curl && \
-    curl -sSL 'https://install.python-poetry.org' | python - \
-    && poetry --version \
-    apt clean && \
-    rm -rf /var/cache/apt/*
+    pip install "poetry==${POETRY_VERSION}" && \
+    poetry --version && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY poetry.lock pyproject.toml /src/
 

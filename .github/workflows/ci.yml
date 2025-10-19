@@ -70,7 +70,7 @@ jobs:
         working-directory: frontend-franes/franes
         run: |
           set -euo pipefail
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: Lint frontend
         working-directory: frontend-franes/franes
