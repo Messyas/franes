@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Calendar, Loader2, X } from "lucide-react"
+import { Calendar, X } from "lucide-react"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
@@ -113,6 +113,13 @@ export default function SecaoHobbies() {
     setItemSelecionado({ item, aspectRatio })
   }
 
+  const shouldShowEmptyState =
+    !isLoading && (itensCategoriaAtual.length ?? 0) === 0
+  const shouldShowSkeletonPlaceholders =
+    categoriaAtual?.id === "desenhos" &&
+    (artworksStatus === "idle" || artworksStatus === "loading") &&
+    (itensCategoriaAtual.length ?? 0) === 0
+
   return (
     <section
       className="h-full w-full overflow-y-auto px-6 py-12 md:px-12 lg:px-24"
@@ -158,16 +165,25 @@ export default function SecaoHobbies() {
               : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
           }`}
         >
-          {isLoading ? (
-            <div className="col-span-full flex items-center justify-center py-12 text-muted-foreground">
-              <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-              Carregando itens...
-            </div>
-          ) : categoriaAtivaErro ? (
+          {categoriaAtivaErro ? (
             <div className="col-span-full glass-strong rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-destructive">
               {categoriaAtivaErro}
             </div>
-          ) : itensCategoriaAtual.length === 0 ? (
+          ) : shouldShowSkeletonPlaceholders ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <CardItemHobby
+                key={`skeleton-desenhos-${index}`}
+                titulo="Carregando desenho"
+                descricao=""
+                data=""
+                imagem=""
+                aspectRatio={categoriaAtual?.aspectRatio ?? "A4"}
+                categoria="desenhos"
+                delay={index * 0.1}
+                isSkeleton
+              />
+            ))
+          ) : shouldShowEmptyState ? (
             <p className="col-span-full text-center text-muted-foreground">
               Nenhum item disponível nesta categoria ainda.
             </p>
@@ -180,6 +196,7 @@ export default function SecaoHobbies() {
                 data={item.data}
                 imagem={item.imagem}
                 aspectRatio={categoriaAtual?.aspectRatio ?? "1:1"}
+                categoria={categoriaAtual?.id ?? "roteiros"}
                 delay={index * 0.1}
                 onClick={() =>
                   handleSelectItem(item, categoriaAtual?.aspectRatio ?? "1:1")
