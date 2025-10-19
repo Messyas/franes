@@ -13,9 +13,11 @@ import type { ReactNode } from "react"
 import {
   type ArtRecord,
   type BlogPost,
+  type CurriculumRecord,
   type StoryScriptRecord,
   fetchArtworks,
   fetchBlogPosts,
+  fetchLatestCurriculum,
   fetchStoryScripts,
 } from "@/lib/api"
 
@@ -46,6 +48,11 @@ type ContentCacheContextValue = {
   blogPostsStatus: Status
   blogPostsError: string | null
   loadBlogPosts: (options?: LoadOptions) => Promise<BlogPost[]>
+
+  latestCurriculum: CurriculumRecord | null
+  curriculumStatus: Status
+  curriculumError: string | null
+  loadLatestCurriculum: (options?: LoadOptions) => Promise<CurriculumRecord>
 }
 
 const ContentCacheContext = createContext<ContentCacheContextValue | undefined>(undefined)
@@ -70,15 +77,19 @@ export function ContentCacheProvider({ children }: { children: ReactNode }) {
   const [storyScriptsState, setStoryScriptsState] =
     useState<ResourceState<StoryScriptRecord[]>>(createInitialState)
   const [blogPostsState, setBlogPostsState] = useState<ResourceState<BlogPost[]>>(createInitialState)
+  const [curriculumState, setCurriculumState] =
+    useState<ResourceState<CurriculumRecord>>(createInitialState)
 
   const inflightRequests = useRef<{
     artworks: Promise<ArtRecord[]> | null
     storyScripts: Promise<StoryScriptRecord[]> | null
     blogPosts: Promise<BlogPost[]> | null
+    curriculum: Promise<CurriculumRecord> | null
   }>({
     artworks: null,
     storyScripts: null,
     blogPosts: null,
+    curriculum: null,
   })
 
   const loadArtworks = useCallback(
@@ -213,6 +224,50 @@ export function ContentCacheProvider({ children }: { children: ReactNode }) {
     [blogPostsState.data],
   )
 
+  const loadLatestCurriculum = useCallback(
+    async ({ force = false }: LoadOptions = {}) => {
+      if (!force && curriculumState.data) {
+        return curriculumState.data
+      }
+
+      if (!force && inflightRequests.current.curriculum) {
+        return inflightRequests.current.curriculum
+      }
+
+      setCurriculumState((prev) => ({
+        data: force ? null : prev.data,
+        status: "loading",
+        error: null,
+      }))
+
+      const request = fetchLatestCurriculum()
+        .then((data) => {
+          setCurriculumState({
+            data,
+            status: "success",
+            error: null,
+          })
+          return data
+        })
+        .catch((err) => {
+          const message = createErrorMessage("Não foi possível carregar o currículo.", err)
+          setCurriculumState((prev) => ({
+            data: prev.data,
+            status: "error",
+            error: message,
+          }))
+          throw err
+        })
+        .finally(() => {
+          inflightRequests.current.curriculum = null
+        })
+
+      inflightRequests.current.curriculum = request
+      return request
+    },
+    [curriculumState.data],
+  )
+
   const value = useMemo<ContentCacheContextValue>(
     () => ({
       artworks: artworksState.data,
@@ -229,6 +284,11 @@ export function ContentCacheProvider({ children }: { children: ReactNode }) {
       blogPostsStatus: blogPostsState.status,
       blogPostsError: blogPostsState.error,
       loadBlogPosts,
+
+      latestCurriculum: curriculumState.data,
+      curriculumStatus: curriculumState.status,
+      curriculumError: curriculumState.error,
+      loadLatestCurriculum,
     }),
     [
       artworksState.data,
@@ -237,8 +297,12 @@ export function ContentCacheProvider({ children }: { children: ReactNode }) {
       blogPostsState.data,
       blogPostsState.error,
       blogPostsState.status,
+      curriculumState.data,
+      curriculumState.error,
+      curriculumState.status,
       loadArtworks,
       loadBlogPosts,
+      loadLatestCurriculum,
       loadStoryScripts,
       storyScriptsState.data,
       storyScriptsState.error,

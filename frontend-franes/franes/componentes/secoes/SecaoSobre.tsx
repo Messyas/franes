@@ -5,12 +5,9 @@ import Link from "next/link";
 import { Download, MessageCircle } from "lucide-react";
 import CardSobre from "@/componentes/CardSobre";
 import ModalDetalhes from "@/componentes/ModalDetalhes";
-import {
-  buildApiUrl,
-  fetchLatestCurriculum,
-  type CurriculumRecord,
-} from "@/lib/api";
+import { buildApiUrl } from "@/lib/api";
 import { obterDadosSobre } from "@/lib/funcoesAuxiliares";
+import { useContentCache } from "@/contexts/content-cache-context";
 
 /**
  * Seção Sobre - Apresenta informações sobre Messyas
@@ -26,11 +23,12 @@ export default function SecaoSobre() {
         arquivo?: string;
       }
     | undefined;
-  const [curriculoDados, setCurriculoDados] = useState<CurriculumRecord | null>(
-    null
-  );
-  const [curriculoErro, setCurriculoErro] = useState<string | null>(null);
-  const [curriculoCarregando, setCurriculoCarregando] = useState(true);
+  const {
+    latestCurriculum,
+    curriculumStatus,
+    curriculumError,
+    loadLatestCurriculum,
+  } = useContentCache();
   const [modalAberto, setModalAberto] = useState(false);
   const [itemSelecionado, setItemSelecionado] = useState<
     (typeof dadosSobre)[0] | null
@@ -42,43 +40,14 @@ export default function SecaoSobre() {
   };
 
   useEffect(() => {
-    let ativo = true;
+    void loadLatestCurriculum();
+  }, [loadLatestCurriculum]);
 
-    async function carregarCurriculo() {
-      try {
-        const dados = await fetchLatestCurriculum();
-        if (!ativo) {
-          return;
-        }
-        setCurriculoDados(dados);
-        setCurriculoErro(null);
-      } catch (error) {
-        if (!ativo) {
-          return;
-        }
-        let mensagem = "Não foi possível carregar o currículo.";
-        if (error instanceof Error) {
-          const texto = error.message.trim();
-          mensagem = texto || mensagem;
-          if (texto.toLowerCase().includes("not found")) {
-            mensagem = "Currículo ainda não foi publicado.";
-          }
-        }
-        setCurriculoErro(mensagem);
-        setCurriculoDados(null);
-      } finally {
-        if (ativo) {
-          setCurriculoCarregando(false);
-        }
-      }
-    }
+  const curriculoDados = latestCurriculum;
+  const curriculoCarregando =
+    curriculumStatus === "idle" || curriculumStatus === "loading";
 
-    void carregarCurriculo();
-
-    return () => {
-      ativo = false;
-    };
-  }, []);
+  const curriculoErro = curriculumError;
 
   const curriculoDownloadUrl = useMemo(() => {
     if (!curriculoDados) {
