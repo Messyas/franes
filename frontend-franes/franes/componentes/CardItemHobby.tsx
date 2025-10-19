@@ -59,6 +59,44 @@ const CARD_SYMBOL_VARIANTS: Record<CategoriaId, { topLeft: string; bottomRight: 
   roteiros: { topLeft: "SC", bottomRight: "PT", label: "Story" },
 }
 
+const CARD_BACK_THEMES: Record<
+  CategoriaId,
+  {
+    background: string
+    mainText: string
+    subtleText: string
+    orbRing: string
+    orbFill: string
+    orbGlow: string
+    pulseRing: string
+    outerBorder: string
+    innerBorder: string
+  }
+> = {
+  desenhos: {
+    background: "bg-gradient-to-br from-primary/40 via-background/80 to-background/95 opacity-90",
+    mainText: "text-primary",
+    subtleText: "text-primary/70",
+    orbRing: "border border-primary/60",
+    orbFill: "bg-primary/10",
+    orbGlow: "shadow-[0_0_35px_rgba(59,130,246,0.35)]",
+    pulseRing: "border-2 border-primary/60",
+    outerBorder: "border border-primary/40",
+    innerBorder: "border border-primary/20",
+  },
+  roteiros: {
+    background: "bg-gradient-to-br from-secondary/45 via-background/80 to-background/95 opacity-90",
+    mainText: "text-secondary-foreground",
+    subtleText: "text-secondary-foreground/80",
+    orbRing: "border border-secondary/60",
+    orbFill: "bg-secondary/10",
+    orbGlow: "shadow-[0_0_32px_rgba(34,197,94,0.35)]",
+    pulseRing: "border-2 border-secondary/60",
+    outerBorder: "border border-secondary/40",
+    innerBorder: "border border-secondary/20",
+  },
+}
+
 interface CardItemHobbyProps {
   titulo: string
   descricao: string
@@ -175,6 +213,7 @@ export default function CardItemHobby({
     ? `deck-enter${aspectRatio === "1:1" ? " square" : ""}`
     : ""
   const cardSymbol = CARD_SYMBOL_VARIANTS[categoria]
+  const cardTheme = CARD_BACK_THEMES[categoria]
   const cardBackClassName =
     "absolute inset-0 overflow-hidden rounded-lg glass group-hover:glass-strong neon-border transition-all duration-300 [backface-visibility:hidden]"
 
@@ -207,21 +246,31 @@ export default function CardItemHobby({
             >
               {/* Verso da carta */}
               <div className={cardBackClassName}>
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-background/80 to-background/95 opacity-90" />
-                <div className="absolute inset-3 rounded-xl border border-primary/40" />
-                <div className="absolute inset-6 rounded-lg border border-primary/20" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-primary">
+                <div className={`absolute inset-0 ${cardTheme.background}`} />
+                <div className={`absolute inset-3 rounded-xl ${cardTheme.outerBorder}`} />
+                <div className={`absolute inset-6 rounded-lg ${cardTheme.innerBorder}`} />
+                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-4 ${cardTheme.mainText}`}>
                   <div className="relative flex items-center justify-center">
-                    <div className="w-24 h-24 rounded-full border border-primary/60 bg-primary/10 shadow-[0_0_35px_rgba(59,130,246,0.35)]" />
-                    <div className="absolute w-12 h-12 border-2 border-primary/60 rounded-full animate-pulse-glow" />
+                    <div
+                      className={`w-24 h-24 rounded-full ${cardTheme.orbRing} ${cardTheme.orbFill} ${cardTheme.orbGlow}`}
+                    />
+                    <div
+                      className={`absolute w-12 h-12 rounded-full ${cardTheme.pulseRing} animate-pulse-glow`}
+                    />
                   </div>
-                  <span className="font-semibold uppercase tracking-[0.4em] text-xs text-primary/80">
+                  <span
+                    className={`font-semibold uppercase tracking-[0.4em] text-xs ${cardTheme.subtleText}`}
+                  >
                     {cardSymbol.label}
                   </span>
-                  <div className="absolute top-4 left-4 text-xs font-mono text-primary/70 rotate-[-10deg]">
+                  <div
+                    className={`absolute top-4 left-4 text-xs font-mono ${cardTheme.subtleText} rotate-[-10deg]`}
+                  >
                     {cardSymbol.topLeft}
                   </div>
-                  <div className="absolute bottom-4 right-4 text-xs font-mono text-primary/70 rotate-[10deg]">
+                  <div
+                    className={`absolute bottom-4 right-4 text-xs font-mono ${cardTheme.subtleText} rotate-[10deg]`}
+                  >
                     {cardSymbol.bottomRight}
                   </div>
                 </div>

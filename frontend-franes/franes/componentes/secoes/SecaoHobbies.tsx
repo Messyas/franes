@@ -127,6 +127,12 @@ export default function SecaoHobbies() {
     categoriaAtual?.aspectRatio === "1:1"
       ? 4
       : 3
+  const skeletonTitle =
+    categoriaAtual?.id === "desenhos"
+      ? "Carregando desenho"
+      : categoriaAtual?.id === "roteiros"
+        ? "Carregando roteiro"
+        : "Carregando item"
 
   return (
     <section
@@ -181,7 +187,7 @@ export default function SecaoHobbies() {
             Array.from({ length: skeletonCount }).map((_, index) => (
               <CardItemHobby
                 key={`skeleton-${categoriaAtual?.id ?? "categoria"}-${index}`}
-                titulo="Carregando desenho"
+                titulo={skeletonTitle}
                 descricao=""
                 data=""
                 imagem=""
