@@ -3,6 +3,49 @@
 import { Calendar } from "lucide-react"
 import Image from "next/image"
 
+const PLACEHOLDER_IMAGE = "/placeholder.svg"
+const DEFAULT_ALLOWED_HOSTS = ["res.cloudinary.com"]
+
+const allowedImageHosts = new Set(
+  DEFAULT_ALLOWED_HOSTS.concat(
+    (process.env.NEXT_PUBLIC_ALLOWED_IMAGE_HOSTS ?? "")
+      .split(",")
+      .map((host) => host.trim())
+      .filter(Boolean),
+  ),
+)
+
+function resolveImageSrc(src?: string | null): string {
+  if (!src) {
+    return PLACEHOLDER_IMAGE
+  }
+
+  if (src.startsWith("/")) {
+    return src
+  }
+
+  if (src.startsWith("data:image/")) {
+    return src
+  }
+
+  try {
+    const url = new URL(src)
+    const isHttpProtocol = url.protocol === "http:" || url.protocol === "https:"
+
+    if (!isHttpProtocol) {
+      return PLACEHOLDER_IMAGE
+    }
+
+    if (!allowedImageHosts.has(url.hostname)) {
+      return PLACEHOLDER_IMAGE
+    }
+
+    return url.toString()
+  } catch {
+    return PLACEHOLDER_IMAGE
+  }
+}
+
 interface CardItemHobbyProps {
   titulo: string
   descricao: string
@@ -27,6 +70,7 @@ export default function CardItemHobby({
   onClick,
 }: CardItemHobbyProps) {
   const aspectClass = aspectRatio === "1:1" ? "aspect-square" : "aspect-[1/1.414]"
+  const imageSrc = resolveImageSrc(imagem)
 
   return (
     <article
@@ -39,7 +83,7 @@ export default function CardItemHobby({
         className={`relative ${aspectClass} w-full overflow-hidden rounded-lg mb-4 glass hover:glass-strong neon-border transition-all duration-300`}
       >
         <Image
-          src={imagem || "/placeholder.svg"}
+          src={imageSrc}
           alt={titulo}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-110"
