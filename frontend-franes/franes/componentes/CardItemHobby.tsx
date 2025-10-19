@@ -96,6 +96,7 @@ export default function CardItemHobby({
   const hasAnimatedOnceRef = useRef<boolean>(isSkeleton ? false : cachedImage)
   const flipDelayTimeoutRef = useRef<number | null>(null)
   const flipAnimationTimeoutRef = useRef<number | null>(null)
+  const [deckAnimationActive] = useState<boolean>(() => isArtworkCard && (isSkeleton || !cachedImage))
 
   useEffect(() => {
     if (!isArtworkCard || isSkeleton) {
@@ -158,6 +159,9 @@ export default function CardItemHobby({
   const articleClasses = `group ${
     isSkeleton ? "cursor-default" : "cursor-pointer"
   } animate-slide-up`
+  const deckAnimationStyle = deckAnimationActive
+    ? { animationDelay: `${delay}s` }
+    : undefined
 
   return (
     <article
@@ -170,9 +174,10 @@ export default function CardItemHobby({
       {isArtworkCard ? (
         <div className={`relative ${aspectClass} w-full mb-4`}>
           <div
-            className={`relative h-full w-full [perspective:1600px] ${
+            className={`relative h-full w-full [perspective:1600px] ${deckAnimationActive ? "deck-enter" : ""} ${
               isSkeleton ? "animate-pulse" : ""
             }`}
+            style={deckAnimationStyle}
           >
             <div
               className={`relative h-full w-full [transform-style:preserve-3d] ${

@@ -200,6 +200,28 @@
   }
 }
 
+@keyframes deckSpread {
+  0% {
+    opacity: 0;
+    transform: translateX(-150%) rotate(-12deg) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-15%) rotate(-4deg) scale(1);
+  }
+  80% {
+    transform: translateX(10%) rotate(3deg) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+
+.deck-enter {
+  animation: deckSpread 0.8s cubic-bezier(0.26, 0.74, 0.25, 1) forwards;
+}
+
 @keyframes neon-flicker {
   0%,
   100% {
