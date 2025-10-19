@@ -25,15 +25,13 @@ export default function NavegacaoInferior({
     { id: "blog" as TipoSecao, icone: FileText, label: "Blog" },
     { id: "hobbies" as TipoSecao, icone: Heart, label: "Hobbies" },
   ];
-  const NAV_ITEM_SIZE = "4.75rem";
-
   return (
     <nav
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
       aria-label="Navegação principal"
     >
       {/* Container da barra de navegação com efeito glassmorphism e shimmer */}
-      <div className="flex items-center gap-3 px-6 py-4 glass-strong rounded-full neon-border shimmer-effect animate-shimmer">
+      <div className="flex items-center gap-2 px-4 py-3 glass-strong rounded-full neon-border shimmer-effect animate-shimmer sm:gap-3 sm:px-6 sm:py-4">
         {itensNavegacao.map((item) => {
           const Icone = item.icone;
           const estaAtivo = secaoAtiva === item.id;
@@ -46,6 +44,7 @@ export default function NavegacaoInferior({
                 relative flex flex-col items-center justify-center gap-1 rounded-2xl
                 transition-all duration-300 ease-out
                 hover:scale-110 active:scale-95
+                w-14 h-14 sm:w-16 sm:h-16 xl:w-[4.75rem] xl:h-[4.75rem]
                 ${
                   estaAtivo
                     ? "scale-110 bg-primary/20 glass-light"
@@ -54,15 +53,11 @@ export default function NavegacaoInferior({
               `}
               aria-label={item.label}
               aria-current={estaAtivo ? "page" : undefined}
-              style={{
-                width: NAV_ITEM_SIZE,
-                height: NAV_ITEM_SIZE,
-              }}
             >
               {/* Ícone com animação de brilho neon verde quando ativo */}
               <Icone
                 className={`
-                  w-6 h-6 transition-all duration-300
+                  w-5 h-5 transition-all duration-300 sm:w-6 sm:h-6
                   ${
                     estaAtivo
                       ? "text-primary drop-shadow-[0_0_12px_rgba(0,255,136,0.8)]"
@@ -75,7 +70,7 @@ export default function NavegacaoInferior({
               {/* Label do ícone */}
               <span
                 className={`
-                  text-xs font-medium transition-all duration-300
+                  text-[0.65rem] font-medium transition-all duration-300 sm:text-xs
                   ${
                     estaAtivo
                       ? "text-primary font-semibold neon-glow"
