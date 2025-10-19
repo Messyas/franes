@@ -1,0 +1,102 @@
+name: CI - Validate & Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  backend:
+    name: Backend · Tests & Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        working-directory: backend-franes
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        working-directory: backend-franes
+        run: |
+          set -euo pipefail
+          set +e
+          python -m pytest
+          rc=$?
+          set -e
+          if [ "$rc" -eq 5 ]; then
+            echo "No backend tests collected"
+            exit 0
+          elif [ "$rc" -ne 0 ]; then
+            exit "$rc"
+          fi
+
+      - name: Validate backend Dockerfile
+        run: docker build -t backend-test -f backend-franes/Dockerfile.prod backend-franes
+
+  frontend:
+    name: Frontend · Lint/Test & Image
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_URL: https://franes-backend.onrender.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend-franes/franes/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend-franes/franes
+        run: |
+          set -euo pipefail
+          npm ci
+
+      - name: Lint frontend
+        working-directory: frontend-franes/franes
+        run: |
+          set -euo pipefail
+          if node -e "const scripts=require('./package.json').scripts||{}; process.exit(scripts.lint?0:1)"; then
+            npm run lint
+          else
+            echo "No lint script configured"
+          fi
+
+      - name: Run frontend tests
+        working-directory: frontend-franes/franes
+        run: |
+          set -euo pipefail
+          if node -e "const scripts=require('./package.json').scripts||{}; process.exit(scripts.test?0:1)"; then
+            npm test
+          else
+            echo "No frontend test script configured"
+          fi
+
+      - name: Validate frontend Dockerfile
+        env:
+          NEXT_PUBLIC_API_URL: https://franes-backend.onrender.com
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+            -t frontend-test \
+            -f frontend-franes/Dockerfile.prod frontend-franes
