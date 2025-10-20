@@ -14,7 +14,28 @@ export default function FundoEnergia3D() {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    const container = containerRef.current
+    if (!container) return
+
+    const hasWebGLSupport = () => {
+      if (typeof window === "undefined") return false
+      try {
+        const canvas = document.createElement("canvas")
+        const context =
+          canvas.getContext("webgl2") ||
+          canvas.getContext("webgl") ||
+          canvas.getContext("experimental-webgl")
+        return !!context
+      } catch (error) {
+        console.warn("WebGL support check failed:", error)
+        return false
+      }
+    }
+
+    if (!hasWebGLSupport()) {
+      console.warn("WebGL não está disponível; mantendo fundo estático.")
+      return
+    }
 
     // Configuração da cena Three.js
     const scene = new THREE.Scene()
@@ -23,11 +44,24 @@ export default function FundoEnergia3D() {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     camera.position.z = 5
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    } catch (error) {
+      console.error("Falha ao inicializar o WebGLRenderer:", error)
+      return
+    }
+
+    if (!renderer.getContext()) {
+      console.error("Renderer WebGL criado sem contexto válido; abortando inicialização.")
+      renderer.dispose()
+      return
+    }
+
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     rendererRef.current = renderer
-    containerRef.current.appendChild(renderer.domElement)
+    container.appendChild(renderer.domElement)
 
     // Shader personalizado para ondas de energia pulsantes
     const vertexShader = `
@@ -168,8 +202,8 @@ export default function FundoEnergia3D() {
       })
       particles.geometry.dispose()
       ;(particles.material as THREE.Material).dispose()
-      if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement)
+      if (container && renderer.domElement && container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement)
       }
     }
   }, [])
